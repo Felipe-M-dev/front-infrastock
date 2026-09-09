@@ -1,0 +1,731 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #2563eb;
+  --color-secondary: #0f172a;
+  --color-background: #f1f5f9;
+  --color-surface: #ffffff;
+  --color-text: #0f172a;
+  --color-logo-background: #ffffff;
+
+  --font-ui:
+    "Segoe UI Variable",
+    "Segoe UI",
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+
+  --font-tech:
+    "Cascadia Code",
+    "Cascadia Mono",
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+html {
+  font-family: var(--font-ui);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1,
+    "calt" 1;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+code,
+kbd,
+pre,
+samp,
+.font-tech {
+  font-family: var(--font-tech);
+}
+
+.font-tech {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
+}
+
+.font-version {
+  font-family: var(--font-tech);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.025em;
+}
+
+.font-hostname {
+  font-family: var(--font-tech);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.font-ip {
+  font-family: var(--font-tech);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.bg-company-primary {
+  background-color: var(--color-primary);
+}
+
+.bg-company-secondary {
+  background-color: var(--color-secondary);
+}
+
+.bg-company-background {
+  background-color: var(--color-background);
+}
+
+.bg-company-surface {
+  background-color: var(--color-surface);
+}
+
+.bg-company-logo {
+  background-color: var(--color-logo-background);
+}
+
+.text-company-primary {
+  color: var(--color-primary);
+}
+
+.text-company-default {
+  color: var(--color-text);
+}
+
+.border-company-primary {
+  border-color: var(--color-primary);
+}
+
+.btn-company-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.btn-company-primary:hover {
+  filter: brightness(0.9);
+}
+
+
+/*
+ * Fondo técnico global del área autenticada.
+ *
+ * Estética inspirada en portales cloud / Azure:
+ * - retícula de puntos visible pero contenida;
+ * - trazas ortogonales de circuito;
+ * - racks, base de datos, nube y chip como elementos técnicos;
+ * - todo deriva del primaryColor configurable de la empresa.
+ */
+.app-content-background {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--color-background);
+
+  --pattern-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 90%,
+      var(--color-text) 10%
+    );
+
+  background-image:
+    radial-gradient(
+      circle at 1px 1px,
+      color-mix(
+        in srgb,
+        var(--pattern-color) 34%,
+        transparent
+      ) 1.2px,
+      transparent 1.45px
+    ),
+    radial-gradient(
+      circle at 12% 8%,
+      color-mix(
+        in srgb,
+        var(--color-primary) 8%,
+        transparent
+      ) 0,
+      transparent 24rem
+    ),
+    radial-gradient(
+      circle at 92% 30%,
+      color-mix(
+        in srgb,
+        var(--color-primary) 7%,
+        transparent
+      ) 0,
+      transparent 28rem
+    );
+
+  background-size:
+    24px 24px,
+    100% 100%,
+    100% 100%;
+}
+
+/*
+ * Capa técnica principal. El SVG funciona únicamente como máscara;
+ * el color visible viene de --pattern-color, por lo que cambia
+ * automáticamente al cambiar la paleta de la empresa autenticada.
+ */
+.app-content-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--pattern-color);
+  opacity: 0.145;
+
+  -webkit-mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='680' height='420' viewBox='0 0 680 420'%3E%3Cg fill='none' stroke='white' stroke-width='1.45' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 74h92c20 0 30 10 30 30v22c0 20 10 30 30 30h72'/%3E%3Cpath d='M244 156h58c20 0 30-10 30-30v-18c0-20 10-30 30-30h118'/%3E%3Cpath d='M24 324h116c20 0 30-10 30-30v-18c0-20 10-30 30-30h120'/%3E%3Cpath d='M320 246h72c20 0 30 10 30 30v18c0 20 10 30 30 30h198'/%3E%3Cpath d='M510 78h44c18 0 28 9 28 27v22c0 18 9 27 27 27h49'/%3E%3Ccircle cx='142' cy='74' r='4'/%3E%3Ccircle cx='244' cy='156' r='4'/%3E%3Ccircle cx='332' cy='126' r='4'/%3E%3Ccircle cx='170' cy='276' r='4'/%3E%3Ccircle cx='320' cy='246' r='4'/%3E%3Ccircle cx='422' cy='276' r='4'/%3E%3Ccircle cx='582' cy='127' r='4'/%3E%3C!-- rack --%3E%3Crect x='76' y='120' width='78' height='84' rx='9'/%3E%3Cpath d='M90 138h50M90 158h50M90 178h50M98 138h2M98 158h2M98 178h2'/%3E%3C!-- database --%3E%3Cellipse cx='390' cy='112' rx='34' ry='13'/%3E%3Cpath d='M356 112v50c0 7 15 13 34 13s34-6 34-13v-50M356 137c0 7 15 13 34 13s34-6 34-13'/%3E%3C!-- cloud --%3E%3Cpath d='M520 236h74c15 0 26-10 26-23 0-12-9-22-22-23-4-18-18-30-37-30-18 0-33 11-38 27-15 1-27 11-27 25 0 14 11 24 24 24Z'/%3E%3C!-- chip --%3E%3Crect x='270' y='292' width='62' height='62' rx='9'/%3E%3Crect x='285' y='307' width='32' height='32' rx='5'/%3E%3Cpath d='M282 284v8M298 284v8M314 284v8M330 284v8M282 354v8M298 354v8M314 354v8M330 354v8M262 304h8M262 320h8M262 336h8M332 304h8M332 320h8M332 336h8'/%3E%3C!-- small server --%3E%3Crect x='570' y='310' width='64' height='56' rx='8'/%3E%3Cpath d='M582 326h40M582 346h40M590 326h2M590 346h2'/%3E%3C/g%3E%3Cg fill='white'%3E%3Ccircle cx='40' cy='40' r='2'/%3E%3Ccircle cx='640' cy='40' r='2'/%3E%3Ccircle cx='40' cy='382' r='2'/%3E%3Ccircle cx='640' cy='382' r='2'/%3E%3Ccircle cx='206' cy='86' r='2'/%3E%3Ccircle cx='474' cy='338' r='2'/%3E%3C/g%3E%3C/svg%3E");
+
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='680' height='420' viewBox='0 0 680 420'%3E%3Cg fill='none' stroke='white' stroke-width='1.45' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 74h92c20 0 30 10 30 30v22c0 20 10 30 30 30h72'/%3E%3Cpath d='M244 156h58c20 0 30-10 30-30v-18c0-20 10-30 30-30h118'/%3E%3Cpath d='M24 324h116c20 0 30-10 30-30v-18c0-20 10-30 30-30h120'/%3E%3Cpath d='M320 246h72c20 0 30 10 30 30v18c0 20 10 30 30 30h198'/%3E%3Cpath d='M510 78h44c18 0 28 9 28 27v22c0 18 9 27 27 27h49'/%3E%3Ccircle cx='142' cy='74' r='4'/%3E%3Ccircle cx='244' cy='156' r='4'/%3E%3Ccircle cx='332' cy='126' r='4'/%3E%3Ccircle cx='170' cy='276' r='4'/%3E%3Ccircle cx='320' cy='246' r='4'/%3E%3Ccircle cx='422' cy='276' r='4'/%3E%3Ccircle cx='582' cy='127' r='4'/%3E%3Crect x='76' y='120' width='78' height='84' rx='9'/%3E%3Cpath d='M90 138h50M90 158h50M90 178h50M98 138h2M98 158h2M98 178h2'/%3E%3Cellipse cx='390' cy='112' rx='34' ry='13'/%3E%3Cpath d='M356 112v50c0 7 15 13 34 13s34-6 34-13v-50M356 137c0 7 15 13 34 13s34-6 34-13'/%3E%3Cpath d='M520 236h74c15 0 26-10 26-23 0-12-9-22-22-23-4-18-18-30-37-30-18 0-33 11-38 27-15 1-27 11-27 25 0 14 11 24 24 24Z'/%3E%3Crect x='270' y='292' width='62' height='62' rx='9'/%3E%3Crect x='285' y='307' width='32' height='32' rx='5'/%3E%3Cpath d='M282 284v8M298 284v8M314 284v8M330 284v8M282 354v8M298 354v8M314 354v8M330 354v8M262 304h8M262 320h8M262 336h8M332 304h8M332 320h8M332 336h8'/%3E%3Crect x='570' y='310' width='64' height='56' rx='8'/%3E%3Cpath d='M582 326h40M582 346h40M590 326h2M590 346h2'/%3E%3C/g%3E%3Cg fill='white'%3E%3Ccircle cx='40' cy='40' r='2'/%3E%3Ccircle cx='640' cy='40' r='2'/%3E%3Ccircle cx='40' cy='382' r='2'/%3E%3Ccircle cx='640' cy='382' r='2'/%3E%3Ccircle cx='206' cy='86' r='2'/%3E%3Ccircle cx='474' cy='338' r='2'/%3E%3C/g%3E%3C/svg%3E");
+
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  -webkit-mask-size: 680px 420px;
+  mask-size: 680px 420px;
+}
+
+/* Retícula amplia, apenas perceptible, para dar profundidad. */
+.app-content-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--pattern-color);
+  opacity: 0.045;
+
+  -webkit-mask-image:
+    linear-gradient(to right, white 1px, transparent 1px),
+    linear-gradient(to bottom, white 1px, transparent 1px);
+  mask-image:
+    linear-gradient(to right, white 1px, transparent 1px),
+    linear-gradient(to bottom, white 1px, transparent 1px);
+  -webkit-mask-size: 112px 112px, 112px 112px;
+  mask-size: 112px 112px, 112px 112px;
+}
+
+@media (max-width: 767px) {
+  .app-content-background {
+    background-size: 27px 27px, 100% 100%, 100% 100%;
+  }
+
+  .app-content-background::before {
+    opacity: 0.115;
+    -webkit-mask-size: 560px 346px;
+    mask-size: 560px 346px;
+  }
+
+  .app-content-background::after {
+    opacity: 0.032;
+    -webkit-mask-size: 92px 92px, 92px 92px;
+    mask-size: 92px 92px, 92px 92px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-content-background {
+    background-attachment: scroll;
+  }
+}
+
+
+/* CTA destacado para descargar una cotización generada. */
+.quote-download-button {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 88%, black 12%);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary) 88%, white 12%),
+      var(--color-primary) 58%,
+      color-mix(in srgb, var(--color-primary) 88%, black 12%)
+    );
+  color: white;
+  box-shadow:
+    0 10px 26px color-mix(in srgb, var(--color-primary) 28%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition:
+    transform 180ms ease,
+    filter 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.quote-download-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+  box-shadow:
+    0 14px 34px color-mix(in srgb, var(--color-primary) 38%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.quote-download-button:active {
+  transform: translateY(0);
+}
+
+.quote-download-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+  outline-offset: 3px;
+}
+
+/*
+ * Skeleton loader reutilizable de InfraStock.
+ * Agregar este bloque al final de frontend/src/index.css.
+ */
+.page-loader-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.page-loader-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-110%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(
+      in srgb,
+      var(--color-primary) 10%,
+      white 90%
+    ),
+    transparent
+  );
+  animation: infrastock-skeleton-shimmer 1.55s ease-in-out infinite;
+}
+
+@keyframes infrastock-skeleton-shimmer {
+  100% {
+    transform: translateX(110%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-loader-shimmer::after {
+    animation: none;
+  }
+}
+
+
+/*
+ * InfraStock - Sidebar Opción A.2
+ * Portal cloud contemporáneo con jerarquía por secciones.
+ * El primaryColor de la empresa se usa como acento y el secondaryColor
+ * participa en el shell sin perder contraste.
+ */
+.sidebar-shell {
+  background:
+    radial-gradient(
+      circle at 110% 4%,
+      color-mix(in srgb, var(--color-primary) 16%, transparent) 0,
+      transparent 18rem
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-secondary) 58%, #020617 42%) 0%,
+      color-mix(in srgb, var(--color-secondary) 42%, #020617 58%) 100%
+    );
+  box-shadow:
+    16px 0 44px rgba(2, 6, 23, 0.18),
+    inset -1px 0 0 rgba(255, 255, 255, 0.045);
+}
+
+.sidebar-brand-panel {
+  border: 1px solid color-mix(in srgb, var(--color-logo-background) 78%, white 22%);
+  box-shadow:
+    0 8px 22px rgba(2, 6, 23, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.sidebar-section-label {
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.35;
+}
+
+.sidebar-nav-item-active {
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-primary) 18%, transparent),
+      rgba(255, 255, 255, 0.045) 68%,
+      transparent
+    );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.sidebar-active-indicator {
+  box-shadow:
+    0 0 14px color-mix(in srgb, var(--color-primary) 62%, transparent);
+}
+
+.sidebar-account {
+  border-top: 1px solid rgba(255, 255, 255, 0.065);
+  padding-top: 10px;
+}
+
+.sidebar-avatar {
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.08),
+    0 5px 14px rgba(2, 6, 23, 0.22);
+}
+
+.sidebar-footer-action {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.sidebar-footer-action:hover {
+  border-color: rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/*
+ * Mantener el ajuste global que evita que los modales desktop queden
+ * visualmente bajo el sidebar fijo de 280 px.
+ */
+@media (min-width: 768px) {
+  .app-content-background .fixed.inset-0 {
+    padding-left: calc(280px + 1rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-nav-item,
+  .sidebar-footer-action {
+    transition: none;
+  }
+}
+
+
+/* ==========================================================================
+ * InfraStock UI foundation
+ * Pase global de consistencia visual para páginas autenticadas.
+ * Mantiene la paleta por empresa; no hardcodea colores corporativos.
+ * ========================================================================== */
+
+.ui-page {
+  --ui-border:
+    color-mix(in srgb, var(--color-primary) 10%, #cbd5e1 90%);
+  --ui-border-strong:
+    color-mix(in srgb, var(--color-primary) 18%, #cbd5e1 82%);
+  --ui-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.035),
+    0 14px 34px rgba(15, 23, 42, 0.055);
+}
+
+.ui-page-header {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color:
+    color-mix(in srgb, var(--color-primary) 12%, #cbd5e1 88%) !important;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-surface) 96%, var(--color-primary) 4%),
+      color-mix(in srgb, var(--color-surface) 99%, transparent)
+    ) !important;
+  box-shadow: var(--ui-shadow) !important;
+}
+
+.ui-page-header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 18rem;
+  height: 100%;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 80% 20%,
+      color-mix(in srgb, var(--color-primary) 8%, transparent),
+      transparent 65%
+    );
+}
+
+.ui-page-icon {
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 16%, transparent);
+  background:
+    color-mix(in srgb, var(--color-primary) 9%, var(--color-surface)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 6px 16px rgba(15, 23, 42, 0.05);
+}
+
+.ui-panel {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color:
+    color-mix(in srgb, var(--color-primary) 10%, #cbd5e1 90%) !important;
+  background:
+    color-mix(in srgb, var(--color-surface) 96%, transparent) !important;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.025),
+    0 9px 24px rgba(15, 23, 42, 0.04) !important;
+}
+
+.ui-table-shell {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color:
+    color-mix(in srgb, var(--color-primary) 10%, #cbd5e1 90%) !important;
+}
+
+.ui-table-shell table thead {
+  background:
+    color-mix(in srgb, var(--color-primary) 4%, #f8fafc 96%);
+}
+
+.ui-table-shell table tbody tr {
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.ui-table-shell table tbody tr:hover {
+  background:
+    color-mix(in srgb, var(--color-primary) 3.5%, white 96.5%);
+}
+
+.ui-btn {
+  min-height: 40px;
+  transition:
+    transform 150ms ease,
+    filter 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.ui-btn-primary {
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 84%, black 16%);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary) 88%, white 12%),
+      var(--color-primary)
+    ) !important;
+  box-shadow:
+    0 7px 18px
+      color-mix(in srgb, var(--color-primary) 20%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.ui-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+  box-shadow:
+    0 10px 24px
+      color-mix(in srgb, var(--color-primary) 26%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.ui-btn-secondary {
+  border-color: var(--ui-border-strong) !important;
+  background:
+    color-mix(in srgb, var(--color-surface) 96%, var(--color-primary) 4%) !important;
+}
+
+.ui-btn-secondary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color:
+    color-mix(in srgb, var(--color-primary) 26%, #cbd5e1 74%) !important;
+  background:
+    color-mix(in srgb, var(--color-primary) 6%, var(--color-surface) 94%) !important;
+}
+
+.ui-btn:focus-visible,
+.ui-control:focus-visible {
+  outline: 3px solid
+    color-mix(in srgb, var(--color-primary) 22%, transparent);
+  outline-offset: 2px;
+}
+
+.ui-control {
+  border-color:
+    color-mix(in srgb, var(--color-primary) 8%, #cbd5e1 92%) !important;
+  background-color:
+    color-mix(in srgb, var(--color-surface) 98%, var(--color-primary) 2%);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+.ui-control:hover:not(:disabled) {
+  border-color:
+    color-mix(in srgb, var(--color-primary) 22%, #cbd5e1 78%) !important;
+}
+
+.ui-control:focus {
+  border-color:
+    color-mix(in srgb, var(--color-primary) 58%, #94a3b8 42%) !important;
+  box-shadow:
+    0 0 0 3px
+      color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.ui-control:disabled {
+  cursor: not-allowed;
+  background: #f8fafc !important;
+}
+
+.ui-alert {
+  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.035);
+}
+
+.ui-alert-error {
+  border-left-width: 3px !important;
+}
+
+.ui-alert-success {
+  border-left-width: 3px !important;
+}
+
+.ui-login-card {
+  box-shadow:
+    0 34px 100px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}
+
+.ui-login-control {
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.ui-login-control:focus {
+  border-color: rgba(96, 165, 250, 0.62) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+}
+
+@media (max-width: 639px) {
+  .ui-page-header {
+    border-radius: 1rem !important;
+  }
+
+  .ui-panel,
+  .ui-table-shell {
+    border-radius: 1rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-btn,
+  .ui-control,
+  .ui-table-shell table tbody tr {
+    transition: none;
+  }
+
+  .ui-btn-primary:hover:not(:disabled),
+  .ui-btn-secondary:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+
+/* Corrección de consistencia: muestras de paleta y bordes globales. */
+.ui-palette-swatch {
+  border: 1px solid
+    color-mix(in srgb, var(--color-primary) 10%, #cbd5e1 90%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 2px 6px rgba(15, 23, 42, 0.05);
+}
+
+/* Evita que shadows/borders locales hagan que algunos paneles parezcan más gruesos. */
+.ui-page .ui-panel,
+.ui-panel,
+.ui-table-shell {
+  outline: none !important;
+}
+
+
+/* ==========================================================================
+ * InfraStock - Consistencia de bordes en KPI/cards secundarios
+ *
+ * Varias métricas usan utilidades border-slate-200 o border-white/80.
+ * Sobre el fondo técnico claro esas líneas resultaban casi imperceptibles.
+ * Se refuerzan únicamente contenedores visuales (div/button/section/article),
+ * sin tocar inputs, selects, badges ni bordes semánticos verde/ámbar/rojo.
+ * ========================================================================== */
+
+.app-content-background
+:is(div, button, section, article).rounded-xl.border.border-slate-200,
+.app-content-background
+:is(div, button, section, article).rounded-2xl.border.border-slate-200,
+.app-content-background
+:is(div, button, section, article).rounded-xl.border.border-slate-200\/80,
+.app-content-background
+:is(div, button, section, article).rounded-2xl.border.border-slate-200\/80 {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 7%,
+      #cbd5e1 93%
+    ) !important;
+}
+
+.app-content-background
+:is(div, button, section, article)[class*="border-white/80"] {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-primary) 8%,
+      #cbd5e1 92%
+    ) !important;
+}
+
+/*
+ * Las superficies del design system siguen mandando sobre el refuerzo anterior.
+ * De esta forma headers/paneles principales y cards KPI comparten exactamente
+ * el mismo grosor visual, sin convertir el layout en una grilla pesada.
+ */
+.app-content-background .ui-page-header,
+.app-content-background .ui-panel,
+.app-content-background .ui-table-shell {
+  border-width: 1px !important;
+}
