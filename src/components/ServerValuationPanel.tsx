@@ -18,8 +18,6 @@ import {
   useNavigate,
 } from 'react-router-dom';
 
-import ExcelJS from 'exceljs';
-
 import {
   getServerValuations,
   type ServerValuationResponse,
@@ -34,8 +32,6 @@ function formatUf(value: number) {
     },
   ).format(value);
 }
-
-
 
 function formatExcelDateTime(value: string | Date) {
   return new Intl.DateTimeFormat(
@@ -240,6 +236,9 @@ export default function ServerValuationPanel() {
     setExporting(true);
 
     try {
+      const { default: ExcelJS } =
+        await import('exceljs');
+
       const selectedCompany =
         companyId === ''
           ? 'Todas las empresas'
