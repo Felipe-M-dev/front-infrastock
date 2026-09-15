@@ -9,7 +9,9 @@ import {
   History,
   Pencil,
   Plus,
-  Power,
+  UserCheck,
+  UserX,
+  KeyRound,
   Trash2,
   UserRound,
   Users,
@@ -18,6 +20,8 @@ import {
 
 import AuditHistoryModal from '../components/AuditHistoryModal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import PersonalVaultDialog from '../components/PersonalVaultDialog';
+import PersonalCredentialsPanel from '../components/PersonalCredentialsPanel';
 import PageLoader from '../components/PageLoader';
 import { useToast } from '../components/ToastProvider';
 
@@ -57,6 +61,10 @@ import {
 
 export default function UsersPage() {
   const toast = useToast();
+  const currentUser = getUser();
+  const canInspectPersonalVaults = currentUser?.username === 'admin' && currentUser.role === 'ADMIN';
+  const [vaultUser, setVaultUser] = useState<AppUser | null>(null);
+  const accountProtected = (user: AppUser) => user.username === 'admin' && user.id !== currentUser?.id;
 
   const [
     users,
@@ -226,6 +234,7 @@ export default function UsersPage() {
   function openEdit(
     user: AppUser,
   ) {
+    if (accountProtected(user)) return;
     setEditing(user);
 
     setUsername(
@@ -532,6 +541,7 @@ export default function UsersPage() {
   function toggleActive(
     user: AppUser,
   ) {
+    if (accountProtected(user)) return;
     setPendingUser(
       user,
     );
@@ -754,6 +764,12 @@ export default function UsersPage() {
 
                       <td className="px-4 py-4">
                         <div className="flex justify-end gap-1">
+                          {canInspectPersonalVaults && (
+                            <button type="button" onClick={() => setVaultUser(user)} title={`Ver credenciales personales de ${user.username}`} aria-label={`Ver credenciales personales de ${user.username}`}
+                              className="rounded-xl p-2 text-company-primary transition hover:bg-company-primary/10">
+                              <KeyRound size={17} />
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() =>
@@ -779,7 +795,8 @@ export default function UsersPage() {
                               )
                             }
                             title="Editar"
-                            className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-company-primary"
+                            disabled={accountProtected(user)}
+                            className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-company-primary disabled:cursor-not-allowed disabled:opacity-30"
                           >
                             <Pencil
                               size={
@@ -800,13 +817,12 @@ export default function UsersPage() {
                                 ? 'Desactivar'
                                 : 'Activar'
                             }
-                            className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100"
+                            aria-label={`${user.active ? 'Desactivar' : 'Activar'} usuario ${user.username}`}
+                            disabled={accountProtected(user)}
+                            className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-30 ${user.active ? 'text-red-700 hover:bg-red-50' : 'text-emerald-700 hover:bg-emerald-50'}`}
                           >
-                            <Power
-                              size={
-                                17
-                              }
-                            />
+                            {user.active ? <UserX size={17} /> : <UserCheck size={17} />}
+                            {user.active ? 'Desactivar' : 'Activar'}
                           </button>
                         </div>
                       </td>
@@ -888,6 +904,11 @@ export default function UsersPage() {
                     </div>
 
                     <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3">
+                      {canInspectPersonalVaults && (
+                        <button type="button" onClick={() => setVaultUser(user)} className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-company-primary hover:bg-company-primary/10">
+                          <KeyRound size={16} />Credenciales personales
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() =>
@@ -895,7 +916,9 @@ export default function UsersPage() {
                             user,
                           )
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                        disabled={accountProtected(user)}
+                        aria-label={`${user.active ? 'Desactivar' : 'Activar'} usuario ${user.username}`}
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-30 ${user.active ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}
                       >
                         <History
                           size={16}
@@ -911,7 +934,8 @@ export default function UsersPage() {
                             user,
                           )
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-company-primary transition hover:bg-slate-50"
+                        disabled={accountProtected(user)}
+                        className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-company-primary transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30"
                       >
                         <Pencil
                           size={16}
@@ -929,9 +953,7 @@ export default function UsersPage() {
                         }
                         className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                       >
-                        <Power
-                          size={16}
-                        />
+                        {user.active ? <UserX size={16} className="text-red-700" /> : <UserCheck size={16} className="text-emerald-700" />}
 
                         {user.active
                           ? 'Desactivar'
@@ -1083,6 +1105,7 @@ export default function UsersPage() {
 
                   <input
                     required
+                    disabled={editing?.username === 'admin'}
                     value={
                       username
                     }
@@ -1193,6 +1216,7 @@ export default function UsersPage() {
                   </label>
 
                   <select
+                    disabled={editing?.username === 'admin'}
                     value={
                       role
                     }
@@ -1229,10 +1253,12 @@ export default function UsersPage() {
 
                   <input
                     type="password"
+                    disabled={!!editing && editing.id !== currentUser?.id && !canInspectPersonalVaults}
                     required={
                       !editing
                     }
-                    minLength={8}
+                    minLength={12}
+                    maxLength={72}
                     value={
                       password
                     }
@@ -1254,7 +1280,9 @@ export default function UsersPage() {
 
                   {editing && (
                     <p className="mt-1.5 text-xs leading-5 text-slate-500">
-                      La contraseña nunca se almacena en el historial. Solo se registra que fue actualizada.
+                      {editing.id !== currentUser?.id && !canInspectPersonalVaults
+                        ? 'Solo la cuenta admin puede cambiar la contraseña de acceso de otro usuario.'
+                        : 'La contraseña nunca se almacena en el historial. Solo se registra que fue actualizada.'}
                     </p>
                   )}
                 </div>
@@ -1291,6 +1319,12 @@ export default function UsersPage() {
         </div>
       )}
 
+
+      {vaultUser && canInspectPersonalVaults && (
+        <PersonalVaultDialog title={`Credenciales personales · ${vaultUser.username}`} onClose={() => setVaultUser(null)}>
+          <PersonalCredentialsPanel key={vaultUser.id} ownerId={vaultUser.id} />
+        </PersonalVaultDialog>
+      )}
 
       <ConfirmDialog
         open={

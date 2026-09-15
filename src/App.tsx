@@ -15,7 +15,7 @@ import { ToastProvider } from './components/ToastProvider';
 import AppLayout from './layouts/AppLayout';
 
 import CompaniesPage from './pages/CompaniesPage';
-import CredentialsPage from './pages/CredentialsPage';
+import CredentialVaultPage from './pages/CredentialVaultPage';
 import DashboardPage from './pages/DashboardPage';
 import InventoryReviewPlanPage from './pages/InventoryReviewPlanPage';
 import IpManagementPage from './pages/IpManagementPage';
@@ -215,9 +215,11 @@ function App() {
                 <RoleRoute
                   roles={[
                     'ADMIN',
+                    'EDITOR',
+                    'VIEWER',
                   ]}
                 >
-                  <CredentialsPage />
+                  <CredentialVaultPage />
                 </RoleRoute>
               }
             />

@@ -153,7 +153,7 @@ const menuItems = [
     path:
       '/credentials',
     icon: KeyRound,
-    roles: ['ADMIN'],
+    roles: ['ADMIN', 'EDITOR', 'VIEWER'],
   },
 
   {
