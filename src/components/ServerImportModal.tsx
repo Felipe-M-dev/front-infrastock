@@ -101,6 +101,10 @@ export default function ServerImportModal({
       return;
     }
 
+    if (batch) {
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -375,7 +379,8 @@ export default function ServerImportModal({
                 type="button"
                 disabled={
                   !file ||
-                  loading
+                  loading ||
+                  batch !== null
                 }
                 onClick={() =>
                   void handlePreview()
@@ -393,7 +398,9 @@ export default function ServerImportModal({
                   />
                 )}
 
-                Prevalidar archivo
+                {batch
+                  ? 'Archivo prevalidado'
+                  : 'Prevalidar archivo'}
               </button>
             </section>
 

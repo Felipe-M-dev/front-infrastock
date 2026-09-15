@@ -177,8 +177,33 @@ export default function AppLayout() {
   const navigate =
     useNavigate();
 
-  const user =
-    getUser();
+  const [
+    user,
+    setUser,
+  ] = useState(() =>
+    getUser(),
+  );
+
+  useEffect(() => {
+    const handleSessionUpdated =
+      () => {
+        setUser(
+          getUser(),
+        );
+      };
+
+    window.addEventListener(
+      'infrastock-session-updated',
+      handleSessionUpdated,
+    );
+
+    return () => {
+      window.removeEventListener(
+        'infrastock-session-updated',
+        handleSessionUpdated,
+      );
+    };
+  }, []);
 
   const company =
     user?.company;

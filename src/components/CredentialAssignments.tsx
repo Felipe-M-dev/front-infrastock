@@ -6,6 +6,8 @@ import {
   type FormEvent,
 } from 'react';
 
+import { createPortal } from 'react-dom';
+
 import {
   Check,
   Copy,
@@ -775,150 +777,49 @@ export default function CredentialAssignments({
         </div>
       )}
 
-      {assignOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px]"
-            onClick={() => {
-              if (!saving) {
-                setAssignOpen(
-                  false,
-                );
-              }
-            }}
-          />
-
-          <div className="relative z-10 flex max-h-[calc(100vh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-white/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.28)] sm:max-h-[90vh]">
-            <div className="h-1 shrink-0 bg-company-primary" />
-
-            <div className="flex shrink-0 items-start justify-between border-b border-slate-100 bg-white/95 px-5 py-4 backdrop-blur-sm">
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-company-primary/10 text-company-primary">
-                  <KeyRound
-                    size={
-                      17
-                    }
-                  />
-                </div>
-
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-company-primary">
-                    Bóveda de credenciales
-                  </p>
-
-                  <h3 className="mt-1 text-lg font-bold text-slate-900">
-                    Asociar credencial
-                  </h3>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    Selecciona una credencial existente de la bóveda.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                disabled={
-                  saving
-                }
-                onClick={() =>
+      {assignOpen &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px]"
+              onClick={() => {
+                if (!saving) {
                   setAssignOpen(
                     false,
-                  )
+                  );
                 }
-                className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 disabled:opacity-50"
-                aria-label="Cerrar"
-              >
-                <X
-                  size={
-                    20
-                  }
-                />
-              </button>
-            </div>
+              }}
+            />
 
-            <form
-              onSubmit={
-                handleAssign
-              }
-              className="flex min-h-0 flex-1 flex-col"
-            >
-              <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
-                <label className="block space-y-1.5">
-                  <span className="text-sm font-semibold text-slate-700">
-                    Credencial *
-                  </span>
+            <div className="relative z-10 flex max-h-[calc(100vh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-white/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.28)] sm:max-h-[90vh]">
+              <div className="h-1 shrink-0 bg-company-primary" />
 
-                  <select
-                    required
-                    value={
-                      credentialId
-                    }
-                    onChange={(
-                      event,
-                    ) =>
-                      setCredentialId(
-                        event.target.value,
-                      )
-                    }
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-company-primary focus:ring-2 focus:ring-company-primary/10"
-                  >
-                    <option value="">
-                      Seleccionar credencial
-                    </option>
+              <div className="flex shrink-0 items-start justify-between border-b border-slate-100 bg-white/95 px-5 py-4 backdrop-blur-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-company-primary/10 text-company-primary">
+                    <KeyRound
+                      size={
+                        17
+                      }
+                    />
+                  </div>
 
-                    {selectableCredentials.map(
-                      (credential) => (
-                        <option
-                          key={
-                            credential.id
-                          }
-                          value={
-                            credential.id
-                          }
-                        >
-                          {credential.name} · {credential.username} · {credential.company?.name ?? 'Global'}{credential.environment ? ` · ${credential.environment}` : ''}
-                        </option>
-                      ),
-                    )}
-                  </select>
-
-                  {selectableCredentials.length ===
-                    0 && (
-                    <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
-                      No hay credenciales activas compatibles disponibles para asociar.
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-company-primary">
+                      Bóveda de credenciales
                     </p>
-                  )}
-                </label>
 
-                <label className="block space-y-1.5">
-                  <span className="text-sm font-semibold text-slate-700">
-                    Propósito / uso
-                  </span>
+                    <h3 className="mt-1 text-lg font-bold text-slate-900">
+                      Asociar credencial
+                    </h3>
 
-                  <input
-                    value={
-                      purpose
-                    }
-                    onChange={(
-                      event,
-                    ) =>
-                      setPurpose(
-                        event.target.value,
-                      )
-                    }
-                    placeholder={
-                      target ===
-                      'SERVER'
-                        ? 'Ej: Acceso administrativo al sistema operativo'
-                        : 'Ej: Acceso administrativo a la aplicación'
-                    }
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-company-primary focus:ring-2 focus:ring-company-primary/10"
-                  />
-                </label>
-              </div>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Selecciona una credencial existente de la bóveda.
+                    </p>
+                  </div>
+                </div>
 
-              <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/50 px-5 py-4 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   disabled={
@@ -929,37 +830,141 @@ export default function CredentialAssignments({
                       false,
                     )
                   }
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                  className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 disabled:opacity-50"
+                  aria-label="Cerrar"
                 >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={
-                    saving ||
-                    !credentialId
-                  }
-                  className="btn-company-primary inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {saving && (
-                    <Loader2
-                      size={
-                        16
-                      }
-                      className="animate-spin"
-                    />
-                  )}
-
-                  {saving
-                    ? 'Asociando...'
-                    : 'Asociar'}
+                  <X
+                    size={
+                      20
+                    }
+                  />
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+              <form
+                onSubmit={
+                  handleAssign
+                }
+                className="flex min-h-0 flex-1 flex-col"
+              >
+                <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
+                  <label className="block space-y-1.5">
+                    <span className="text-sm font-semibold text-slate-700">
+                      Credencial *
+                    </span>
+
+                    <select
+                      required
+                      value={
+                        credentialId
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setCredentialId(
+                          event.target.value,
+                        )
+                      }
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-company-primary focus:ring-2 focus:ring-company-primary/10"
+                    >
+                      <option value="">
+                        Seleccionar credencial
+                      </option>
+
+                      {selectableCredentials.map(
+                        (credential) => (
+                          <option
+                            key={
+                              credential.id
+                            }
+                            value={
+                              credential.id
+                            }
+                          >
+                            {credential.name} · {credential.username} · {credential.company?.name ?? 'Global'}{credential.environment ? ` · ${credential.environment}` : ''}
+                          </option>
+                        ),
+                      )}
+                    </select>
+
+                    {selectableCredentials.length ===
+                      0 && (
+                      <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
+                        No hay credenciales activas compatibles disponibles para asociar.
+                      </p>
+                    )}
+                  </label>
+
+                  <label className="block space-y-1.5">
+                    <span className="text-sm font-semibold text-slate-700">
+                      Propósito / uso
+                    </span>
+
+                    <input
+                      value={
+                        purpose
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setPurpose(
+                          event.target.value,
+                        )
+                      }
+                      placeholder={
+                        target ===
+                        'SERVER'
+                          ? 'Ej: Acceso administrativo al sistema operativo'
+                          : 'Ej: Acceso administrativo a la aplicación'
+                      }
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-company-primary focus:ring-2 focus:ring-company-primary/10"
+                    />
+                  </label>
+                </div>
+
+                <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/50 px-5 py-4 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    disabled={
+                      saving
+                    }
+                    onClick={() =>
+                      setAssignOpen(
+                        false,
+                      )
+                    }
+                    className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={
+                      saving ||
+                      !credentialId
+                    }
+                    className="btn-company-primary inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {saving && (
+                      <Loader2
+                        size={
+                          16
+                        }
+                        className="animate-spin"
+                      />
+                    )}
+
+                    {saving
+                      ? 'Asociando...'
+                      : 'Asociar'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body,
+        )}
 
       <ConfirmDialog
         open={Boolean(pendingRemove)}

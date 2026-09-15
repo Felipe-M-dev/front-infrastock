@@ -670,7 +670,7 @@ export default function ProfilePage() {
                 {profile.name}
               </p>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                JPG, PNG o WebP. Máximo 5 MB. La imagen se normaliza y se eliminan sus metadatos.
+                JPG, PNG o WebP. Máximo 5 MB.
               </p>
 
               <div className="mt-4 flex w-full flex-col gap-2">

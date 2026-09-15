@@ -260,6 +260,81 @@ function buildCredentialParams(
   return params;
 }
 
+function copyTextFallback(
+  text: string,
+): boolean {
+  if (
+    typeof document === 'undefined'
+  ) {
+    return false;
+  }
+
+  const textarea =
+    document.createElement('textarea');
+
+  textarea.value = text;
+  textarea.setAttribute(
+    'readonly',
+    '',
+  );
+  textarea.style.position =
+    'fixed';
+  textarea.style.left =
+    '-9999px';
+  textarea.style.top = '0';
+  textarea.style.opacity = '0';
+
+  document.body.appendChild(
+    textarea,
+  );
+
+  textarea.focus();
+  textarea.select();
+  textarea.setSelectionRange(
+    0,
+    textarea.value.length,
+  );
+
+  let copied = false;
+
+  try {
+    copied =
+      document.execCommand(
+        'copy',
+      );
+  } finally {
+    textarea.value = '';
+    textarea.remove();
+  }
+
+  return copied;
+}
+
+async function writeTextToClipboard(
+  text: string,
+): Promise<void> {
+  if (
+    typeof navigator !== 'undefined' &&
+    navigator.clipboard?.writeText &&
+    typeof window !== 'undefined' &&
+    window.isSecureContext
+  ) {
+    await navigator.clipboard.writeText(
+      text,
+    );
+
+    return;
+  }
+
+  if (copyTextFallback(text)) {
+    return;
+  }
+
+  throw new Error(
+    'El navegador bloqueó el acceso al portapapeles. Usa HTTPS o copia la credencial desde un navegador compatible.',
+  );
+}
+
 export async function getCredentials(
   filters: CredentialFilters = {},
 ): Promise<Credential[]> {
@@ -354,7 +429,7 @@ export async function copyCredentialPassword(
     },
   );
 
-  await navigator.clipboard.writeText(
+  await writeTextToClipboard(
     result.password,
   );
 }
