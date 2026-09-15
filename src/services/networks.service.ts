@@ -1,9 +1,6 @@
-import { apiRequest } from './api.service';
+import { apiRequest } from "./api.service";
 
-export type IpStatus =
-  | 'FREE'
-  | 'USED'
-  | 'RESERVED';
+export type IpStatus = "FREE" | "USED" | "RESERVED";
 
 export interface NetworkSummary {
   id: number;
@@ -47,15 +44,17 @@ export interface IpInventoryItem {
   reservation: {
     id: number;
     description: string | null;
+    provisioningServer: {
+      id: number;
+      hostname: string;
+      active: boolean;
+    } | null;
   } | null;
   requiresRelease: boolean;
 }
 
 export interface IpInventoryResponse {
-  network: Omit<
-    NetworkSummary,
-    'totals'
-  >;
+  network: Omit<NetworkSummary, "totals">;
   totals: {
     used: number;
     reserved: number;
@@ -99,13 +98,10 @@ export interface ProvisioningAvailableIpsResponse {
 export async function getProvisioningNetworks(): Promise<
   ProvisioningNetwork[]
 > {
-  return apiRequest<ProvisioningNetwork[]>(
-    '/networks/provisioning-options',
-    {
-      fallbackMessage:
-        'No fue posible obtener las redes disponibles para aprovisionamiento.',
-    },
-  );
+  return apiRequest<ProvisioningNetwork[]>("/networks/provisioning-options", {
+    fallbackMessage:
+      "No fue posible obtener las redes disponibles para aprovisionamiento.",
+  });
 }
 
 export async function getProvisioningAvailableIps(
@@ -115,28 +111,22 @@ export async function getProvisioningAvailableIps(
     `/networks/${networkId}/provisioning-available-ips`,
     {
       fallbackMessage:
-        'No fue posible obtener las IP disponibles de la red seleccionada.',
+        "No fue posible obtener las IP disponibles de la red seleccionada.",
     },
   );
 }
 
-export async function getNetworks(): Promise<
-  NetworkSummary[]
-> {
-  return apiRequest<NetworkSummary[]>(
-    '/networks',
-    {
-      fallbackMessage:
-        'No fue posible obtener las redes.',
-    },
-  );
+export async function getNetworks(): Promise<NetworkSummary[]> {
+  return apiRequest<NetworkSummary[]>("/networks", {
+    fallbackMessage: "No fue posible obtener las redes.",
+  });
 }
 
 export async function getIpInventory(
   networkId: number,
   options: {
     search?: string;
-    status?: IpStatus | '';
+    status?: IpStatus | "";
     page?: number;
     pageSize?: number;
   } = {},
@@ -144,19 +134,19 @@ export async function getIpInventory(
   const params = new URLSearchParams();
 
   if (options.search?.trim()) {
-    params.set('search', options.search.trim());
+    params.set("search", options.search.trim());
   }
 
   if (options.status) {
-    params.set('status', options.status);
+    params.set("status", options.status);
   }
 
   if (options.page) {
-    params.set('page', String(options.page));
+    params.set("page", String(options.page));
   }
 
   if (options.pageSize) {
-    params.set('pageSize', String(options.pageSize));
+    params.set("pageSize", String(options.pageSize));
   }
 
   const query = params.toString();
@@ -166,8 +156,7 @@ export async function getIpInventory(
       ? `/networks/${networkId}/ips?${query}`
       : `/networks/${networkId}/ips`,
     {
-      fallbackMessage:
-        'No fue posible obtener las IPs.',
+      fallbackMessage: "No fue posible obtener las IPs.",
     },
   );
 }
@@ -175,43 +164,29 @@ export async function getIpInventory(
 export async function createNetwork(
   payload: NetworkPayload,
 ): Promise<NetworkSummary> {
-  return apiRequest<NetworkSummary>(
-    '/networks',
-    {
-      method: 'POST',
-      body: payload,
-      fallbackMessage:
-        'No fue posible crear la red.',
-    },
-  );
+  return apiRequest<NetworkSummary>("/networks", {
+    method: "POST",
+    body: payload,
+    fallbackMessage: "No fue posible crear la red.",
+  });
 }
 
 export async function updateNetwork(
   id: number,
   payload: NetworkPayload,
 ): Promise<NetworkSummary> {
-  return apiRequest<NetworkSummary>(
-    `/networks/${id}`,
-    {
-      method: 'PATCH',
-      body: payload,
-      fallbackMessage:
-        'No fue posible modificar la red.',
-    },
-  );
+  return apiRequest<NetworkSummary>(`/networks/${id}`, {
+    method: "PATCH",
+    body: payload,
+    fallbackMessage: "No fue posible modificar la red.",
+  });
 }
 
-export async function deleteNetwork(
-  id: number,
-): Promise<void> {
-  await apiRequest<void>(
-    `/networks/${id}`,
-    {
-      method: 'DELETE',
-      fallbackMessage:
-        'No fue posible eliminar la red.',
-    },
-  );
+export async function deleteNetwork(id: number): Promise<void> {
+  await apiRequest<void>(`/networks/${id}`, {
+    method: "DELETE",
+    fallbackMessage: "No fue posible eliminar la red.",
+  });
 }
 
 export async function reserveIp(
@@ -221,26 +196,19 @@ export async function reserveIp(
     description?: string;
   },
 ) {
-  return apiRequest<unknown>(
-    `/networks/${networkId}/reservations`,
-    {
-      method: 'POST',
-      body: payload,
-      fallbackMessage:
-        'No fue posible reservar la IP.',
-    },
-  );
+  return apiRequest<unknown>(`/networks/${networkId}/reservations`, {
+    method: "POST",
+    body: payload,
+    fallbackMessage: "No fue posible reservar la IP.",
+  });
 }
 
-export async function releaseReservation(
-  reservationId: number,
-) {
+export async function releaseReservation(reservationId: number) {
   return apiRequest<unknown>(
     `/networks/reservations/${reservationId}/release`,
     {
-      method: 'PATCH',
-      fallbackMessage:
-        'No fue posible liberar la reserva.',
+      method: "PATCH",
+      fallbackMessage: "No fue posible liberar la reserva.",
     },
   );
 }
@@ -249,13 +217,9 @@ export async function releaseInactiveServerIp(
   networkId: number,
   ipAddress: string,
 ) {
-  return apiRequest<unknown>(
-    `/networks/${networkId}/ips/release-inactive`,
-    {
-      method: 'PATCH',
-      body: { ipAddress },
-      fallbackMessage:
-        'No fue posible liberar el vínculo histórico.',
-    },
-  );
+  return apiRequest<unknown>(`/networks/${networkId}/ips/release-inactive`, {
+    method: "PATCH",
+    body: { ipAddress },
+    fallbackMessage: "No fue posible liberar el vínculo histórico.",
+  });
 }

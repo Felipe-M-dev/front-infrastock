@@ -4,7 +4,7 @@ import {
   useEffect,
   useMemo,
   useState,
-} from 'react';
+} from "react";
 
 import {
   Bookmark,
@@ -19,11 +19,11 @@ import {
   ShieldCheck,
   Trash2,
   X,
-} from 'lucide-react';
+} from "lucide-react";
 
-import PageLoader from '../components/PageLoader';
-import { useToast } from '../components/ToastProvider';
-import ConfirmDialog from '../components/ConfirmDialog';
+import PageLoader from "../components/PageLoader";
+import { useToast } from "../components/ToastProvider";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 import {
   createNetwork,
@@ -38,58 +38,40 @@ import {
   type IpInventoryResponse,
   type IpStatus,
   type NetworkSummary,
-} from '../services/networks.service';
+} from "../services/networks.service";
 
 export default function IpManagementPage() {
   const toast = useToast();
 
-  const [
-    networks,
-    setNetworks,
-  ] = useState<NetworkSummary[]>([]);
+  const [networks, setNetworks] = useState<NetworkSummary[]>([]);
 
-  const [
-    selectedNetworkId,
-    setSelectedNetworkId,
-  ] = useState<number | null>(null);
+  const [selectedNetworkId, setSelectedNetworkId] = useState<number | null>(
+    null,
+  );
 
-  const [
-    inventory,
-    setInventory,
-  ] = useState<IpInventoryResponse | null>(null);
+  const [inventory, setInventory] = useState<IpInventoryResponse | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
-  const [inventoryLoading, setInventoryLoading] =
-    useState(false);
-  const [error, setError] =
-    useState('');
+  const [loading, setLoading] = useState(true);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [search, setSearch] =
-    useState('');
-  const [status, setStatus] =
-    useState<IpStatus | ''>('');
-  const [page, setPage] =
-    useState(1);
-  const [pageSize, setPageSize] =
-    useState(100);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<IpStatus | "">("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
 
-  const [networkModalOpen, setNetworkModalOpen] =
-    useState(false);
-  const [editingNetwork, setEditingNetwork] =
-    useState<NetworkSummary | null>(null);
-  const [networkName, setNetworkName] =
-    useState('');
-  const [networkCidr, setNetworkCidr] =
-    useState('');
-  const [networkDescription, setNetworkDescription] =
-    useState('');
-  const [networkActive, setNetworkActive] =
-    useState(true);
-  const [savingNetwork, setSavingNetwork] =
-    useState(false);
-  const [deletingNetworkId, setDeletingNetworkId] =
-    useState<number | null>(null);
+  const [networkModalOpen, setNetworkModalOpen] = useState(false);
+  const [editingNetwork, setEditingNetwork] = useState<NetworkSummary | null>(
+    null,
+  );
+  const [networkName, setNetworkName] = useState("");
+  const [networkCidr, setNetworkCidr] = useState("");
+  const [networkDescription, setNetworkDescription] = useState("");
+  const [networkActive, setNetworkActive] = useState(true);
+  const [savingNetwork, setSavingNetwork] = useState(false);
+  const [deletingNetworkId, setDeletingNetworkId] = useState<number | null>(
+    null,
+  );
 
   const [pendingDeleteNetwork, setPendingDeleteNetwork] =
     useState<NetworkSummary | null>(null);
@@ -97,51 +79,36 @@ export default function IpManagementPage() {
     useState<IpInventoryItem | null>(null);
   const [pendingHistoricalRelease, setPendingHistoricalRelease] =
     useState<IpInventoryItem | null>(null);
-  const [ipActionBusy, setIpActionBusy] =
-    useState(false);
+  const [ipActionBusy, setIpActionBusy] = useState(false);
 
-  const [reservationOpen, setReservationOpen] =
-    useState(false);
-  const [reservationIp, setReservationIp] =
-    useState('');
-  const [reservationDescription, setReservationDescription] =
-    useState('');
-  const [savingReservation, setSavingReservation] =
-    useState(false);
+  const [reservationOpen, setReservationOpen] = useState(false);
+  const [reservationIp, setReservationIp] = useState("");
+  const [reservationDescription, setReservationDescription] = useState("");
+  const [savingReservation, setSavingReservation] = useState(false);
 
-  const selectedNetwork =
-    useMemo(
-      () =>
-        networks.find(
-          (network) =>
-            network.id === selectedNetworkId,
-        ) ?? null,
-      [networks, selectedNetworkId],
-    );
+  const selectedNetwork = useMemo(
+    () => networks.find((network) => network.id === selectedNetworkId) ?? null,
+    [networks, selectedNetworkId],
+  );
 
   async function loadNetworks() {
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
       const data = await getNetworks();
       setNetworks(data);
 
-      setSelectedNetworkId(
-        (current) =>
-          current &&
-          data.some(
-            (network) =>
-              network.id === current,
-          )
-            ? current
-            : data[0]?.id ?? null,
+      setSelectedNetworkId((current) =>
+        current && data.some((network) => network.id === current)
+          ? current
+          : (data[0]?.id ?? null),
       );
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : 'No fue posible cargar las redes.',
+          : "No fue posible cargar las redes.",
       );
     } finally {
       setLoading(false);
@@ -156,17 +123,14 @@ export default function IpManagementPage() {
 
     try {
       setInventoryLoading(true);
-      setError('');
+      setError("");
 
-      const data = await getIpInventory(
-        selectedNetworkId,
-        {
-          search,
-          status,
-          page,
-          pageSize,
-        },
-      );
+      const data = await getIpInventory(selectedNetworkId, {
+        search,
+        status,
+        page,
+        pageSize,
+      });
 
       setInventory(data);
 
@@ -177,7 +141,7 @@ export default function IpManagementPage() {
       setError(
         error instanceof Error
           ? error.message
-          : 'No fue posible cargar las IPs.',
+          : "No fue posible cargar las IPs.",
       );
     } finally {
       setInventoryLoading(false);
@@ -196,65 +160,46 @@ export default function IpManagementPage() {
       search ? 250 : 0,
     );
 
-    return () =>
-      window.clearTimeout(timer);
-  }, [
-    selectedNetworkId,
-    search,
-    status,
-    page,
-    pageSize,
-  ]);
+    return () => window.clearTimeout(timer);
+  }, [selectedNetworkId, search, status, page, pageSize]);
 
   function openCreateNetwork() {
     setEditingNetwork(null);
-    setNetworkName('');
-    setNetworkCidr('');
-    setNetworkDescription('');
+    setNetworkName("");
+    setNetworkCidr("");
+    setNetworkDescription("");
     setNetworkActive(true);
     setNetworkModalOpen(true);
   }
 
-  function openEditNetwork(
-    network: NetworkSummary,
-  ) {
+  function openEditNetwork(network: NetworkSummary) {
     setEditingNetwork(network);
     setNetworkName(network.name);
     setNetworkCidr(network.cidr);
-    setNetworkDescription(
-      network.description ?? '',
-    );
+    setNetworkDescription(network.description ?? "");
     setNetworkActive(network.active);
     setNetworkModalOpen(true);
   }
 
-  async function saveNetwork(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function saveNetwork(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     try {
       setSavingNetwork(true);
-      setError('');
+      setError("");
 
       const payload = {
         name: networkName.trim(),
         cidr: networkCidr.trim(),
-        description:
-          networkDescription.trim(),
+        description: networkDescription.trim(),
         active: networkActive,
       };
 
-      const wasEditing =
-        Boolean(editingNetwork);
-      const savedNetworkName =
-        networkName.trim();
+      const wasEditing = Boolean(editingNetwork);
+      const savedNetworkName = networkName.trim();
 
       if (editingNetwork) {
-        await updateNetwork(
-          editingNetwork.id,
-          payload,
-        );
+        await updateNetwork(editingNetwork.id, payload);
       } else {
         await createNetwork(payload);
       }
@@ -263,29 +208,23 @@ export default function IpManagementPage() {
       await loadNetworks();
 
       toast.success(
-        wasEditing
-          ? 'Red/VLAN actualizada'
-          : 'Red/VLAN creada',
-        `${savedNetworkName} fue ${wasEditing ? 'actualizada' : 'creada'} correctamente.`,
+        wasEditing ? "Red/VLAN actualizada" : "Red/VLAN creada",
+        `${savedNetworkName} fue ${wasEditing ? "actualizada" : "creada"} correctamente.`,
       );
     } catch (error) {
       toast.error(
-        'No fue posible guardar la red/VLAN',
+        "No fue posible guardar la red/VLAN",
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al guardar la red.',
+          : "Ocurrió un error al guardar la red.",
       );
     } finally {
       setSavingNetwork(false);
     }
   }
 
-  function handleDeleteNetwork(
-    network: NetworkSummary,
-  ) {
-    setPendingDeleteNetwork(
-      network,
-    );
+  function handleDeleteNetwork(network: NetworkSummary) {
+    setPendingDeleteNetwork(network);
   }
 
   async function confirmDeleteNetwork() {
@@ -295,41 +234,33 @@ export default function IpManagementPage() {
 
     try {
       setIpActionBusy(true);
-      setDeletingNetworkId(
-        pendingDeleteNetwork.id,
-      );
-      setError('');
+      setDeletingNetworkId(pendingDeleteNetwork.id);
+      setError("");
 
-      await deleteNetwork(
-        pendingDeleteNetwork.id,
-      );
+      await deleteNetwork(pendingDeleteNetwork.id);
 
-      if (
-        selectedNetworkId ===
-        pendingDeleteNetwork.id
-      ) {
+      if (selectedNetworkId === pendingDeleteNetwork.id) {
         setInventory(null);
-        setSearch('');
-        setStatus('');
+        setSearch("");
+        setStatus("");
         setPage(1);
       }
 
-      const deletedNetwork =
-        pendingDeleteNetwork;
+      const deletedNetwork = pendingDeleteNetwork;
 
       setPendingDeleteNetwork(null);
       await loadNetworks();
 
       toast.success(
-        'Red/VLAN eliminada',
+        "Red/VLAN eliminada",
         `${deletedNetwork.name} fue eliminada correctamente.`,
       );
     } catch (error) {
       toast.error(
-        'No fue posible eliminar la red/VLAN',
+        "No fue posible eliminar la red/VLAN",
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al eliminar la red.',
+          : "Ocurrió un error al eliminar la red.",
       );
     } finally {
       setDeletingNetworkId(null);
@@ -337,17 +268,13 @@ export default function IpManagementPage() {
     }
   }
 
-  function openReservation(
-    ipAddress = '',
-  ) {
+  function openReservation(ipAddress = "") {
     setReservationIp(ipAddress);
-    setReservationDescription('');
+    setReservationDescription("");
     setReservationOpen(true);
   }
 
-  async function saveReservation(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function saveReservation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!selectedNetworkId) {
@@ -356,52 +283,40 @@ export default function IpManagementPage() {
 
     try {
       setSavingReservation(true);
-      setError('');
+      setError("");
 
-      await reserveIp(
-        selectedNetworkId,
-        {
-          ipAddress: reservationIp.trim(),
-          description:
-            reservationDescription.trim(),
-        },
-      );
+      await reserveIp(selectedNetworkId, {
+        ipAddress: reservationIp.trim(),
+        description: reservationDescription.trim(),
+      });
 
-      const reservedIp =
-        reservationIp.trim();
+      const reservedIp = reservationIp.trim();
 
       setReservationOpen(false);
-      await Promise.all([
-        loadNetworks(),
-        loadInventory(),
-      ]);
+      await Promise.all([loadNetworks(), loadInventory()]);
 
       toast.success(
-        'IP reservada',
+        "IP reservada",
         `${reservedIp} quedó reservada correctamente.`,
       );
     } catch (error) {
       toast.error(
-        'No fue posible reservar la IP',
+        "No fue posible reservar la IP",
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al reservar la IP.',
+          : "Ocurrió un error al reservar la IP.",
       );
     } finally {
       setSavingReservation(false);
     }
   }
 
-  function handleReleaseReservation(
-    item: IpInventoryItem,
-  ) {
+  function handleReleaseReservation(item: IpInventoryItem) {
     if (!item.reservation) {
       return;
     }
 
-    setPendingReleaseReservation(
-      item,
-    );
+    setPendingReleaseReservation(item);
   }
 
   async function confirmReleaseReservation() {
@@ -411,95 +326,76 @@ export default function IpManagementPage() {
 
     try {
       setIpActionBusy(true);
-      setError('');
+      setError("");
 
-      await releaseReservation(
-        pendingReleaseReservation.reservation.id,
-      );
+      await releaseReservation(pendingReleaseReservation.reservation.id);
 
-      const releasedIp =
-        pendingReleaseReservation.ipAddress;
+      const releasedIp = pendingReleaseReservation.ipAddress;
 
       setPendingReleaseReservation(null);
-      await Promise.all([
-        loadNetworks(),
-        loadInventory(),
-      ]);
+      await Promise.all([loadNetworks(), loadInventory()]);
 
       toast.success(
-        'Reserva liberada',
+        "Reserva liberada",
         `${releasedIp} volvió a quedar disponible.`,
       );
     } catch (error) {
       toast.error(
-        'No fue posible liberar la reserva',
+        "No fue posible liberar la reserva",
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al liberar la reserva.',
+          : "Ocurrió un error al liberar la reserva.",
       );
     } finally {
       setIpActionBusy(false);
     }
   }
 
-  function handleReleaseHistorical(
-    item: IpInventoryItem,
-  ) {
-    if (
-      !selectedNetworkId ||
-      !item.previousServer
-    ) {
+  function handleReleaseHistorical(item: IpInventoryItem) {
+    if (!selectedNetworkId || !item.previousServer) {
       return;
     }
 
-    setPendingHistoricalRelease(
-      item,
-    );
+    setPendingHistoricalRelease(item);
   }
 
   async function confirmReleaseHistorical() {
-    if (
-      !selectedNetworkId ||
-      !pendingHistoricalRelease?.previousServer
-    ) {
+    if (!selectedNetworkId || !pendingHistoricalRelease?.previousServer) {
       return;
     }
 
     try {
       setIpActionBusy(true);
-      setError('');
+      setError("");
 
       await releaseInactiveServerIp(
         selectedNetworkId,
         pendingHistoricalRelease.ipAddress,
       );
 
-      const releasedIp =
-        pendingHistoricalRelease.ipAddress;
+      const releasedIp = pendingHistoricalRelease.ipAddress;
 
       setPendingHistoricalRelease(null);
       await loadInventory();
 
       toast.success(
-        'Vínculo histórico liberado',
+        "Vínculo histórico liberado",
         `${releasedIp} ya puede reutilizarse.`,
       );
     } catch (error) {
       toast.error(
-        'No fue posible liberar el vínculo histórico',
+        "No fue posible liberar el vínculo histórico",
         error instanceof Error
           ? error.message
-          : 'Ocurrió un error al liberar el vínculo histórico.',
+          : "Ocurrió un error al liberar el vínculo histórico.",
       );
     } finally {
       setIpActionBusy(false);
     }
   }
 
-  function statusBadge(
-    item: IpInventoryItem,
-  ) {
-    if (item.status === 'USED') {
+  function statusBadge(item: IpInventoryItem) {
+    if (item.status === "USED") {
       return (
         <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
           Usada
@@ -507,7 +403,7 @@ export default function IpManagementPage() {
       );
     }
 
-    if (item.status === 'RESERVED') {
+    if (item.status === "RESERVED") {
       return (
         <span className="inline-flex rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
           Reservada
@@ -525,15 +421,9 @@ export default function IpManagementPage() {
   if (loading) {
     return (
       <div className="space-y-5">
-        <PageLoader
-          variant="cards"
-          rows={3}
-        />
+        <PageLoader variant="cards" rows={3} />
 
-        <PageLoader
-          variant="detail"
-          rows={2}
-        />
+        <PageLoader variant="detail" rows={2} />
       </div>
     );
   }
@@ -559,7 +449,8 @@ export default function IpManagementPage() {
               </h1>
 
               <p className="mt-1.5 max-w-3xl text-sm leading-6 text-slate-500">
-                Controla redes, disponibilidad, reservas y uso de direcciones IPv4.
+                Controla redes, disponibilidad, reservas y uso de direcciones
+                IPv4.
               </p>
             </div>
           </div>
@@ -591,26 +482,24 @@ export default function IpManagementPage() {
               setPage(1);
             }}
             className={[
-              'relative overflow-hidden rounded-2xl border bg-white/90 p-5 text-left shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 backdrop-blur-sm',
+              "relative overflow-hidden rounded-2xl border bg-white/90 p-5 text-left shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 backdrop-blur-sm",
               selectedNetworkId === network.id
-                ? 'border-company-primary ring-2 ring-company-primary/10'
-                : 'border-white/80 hover:border-slate-300',
-            ].join(' ')}
+                ? "border-company-primary ring-2 ring-company-primary/10"
+                : "border-white/80 hover:border-slate-300",
+            ].join(" ")}
           >
             <div
               className={[
-                'absolute inset-x-0 top-0 h-0.5',
+                "absolute inset-x-0 top-0 h-0.5",
                 selectedNetworkId === network.id
-                  ? 'bg-company-primary'
-                  : 'bg-slate-200',
-              ].join(' ')}
+                  ? "bg-company-primary"
+                  : "bg-slate-200",
+              ].join(" ")}
             />
 
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-semibold text-slate-900">
-                  {network.name}
-                </p>
+                <p className="font-semibold text-slate-900">{network.name}</p>
 
                 <p className="font-ip mt-1 text-sm text-slate-500">
                   {network.cidr}
@@ -619,29 +508,35 @@ export default function IpManagementPage() {
 
               <span
                 className={[
-                  'shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold',
+                  "shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold",
                   network.active
-                    ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                    : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',
-                ].join(' ')}
+                    ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                    : "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
+                ].join(" ")}
               >
-                {network.active ? 'Activa' : 'Inactiva'}
+                {network.active ? "Activa" : "Inactiva"}
               </span>
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
               <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 px-2 py-2.5 text-emerald-700">
-                <strong className="block text-base">{network.totals.used}</strong>
+                <strong className="block text-base">
+                  {network.totals.used}
+                </strong>
                 usadas
               </div>
 
               <div className="rounded-xl border border-sky-100 bg-sky-50/70 px-2 py-2.5 text-sky-700">
-                <strong className="block text-base">{network.totals.free}</strong>
+                <strong className="block text-base">
+                  {network.totals.free}
+                </strong>
                 libres
               </div>
 
               <div className="rounded-xl border border-amber-100 bg-amber-50/70 px-2 py-2.5 text-amber-700">
-                <strong className="block text-base">{network.totals.reserved}</strong>
+                <strong className="block text-base">
+                  {network.totals.reserved}
+                </strong>
                 reservadas
               </div>
             </div>
@@ -681,7 +576,9 @@ export default function IpManagementPage() {
                 </div>
 
                 <p className="font-ip mt-1 text-sm text-slate-500">
-                  {selectedNetwork.range.firstUsable} a {selectedNetwork.range.lastUsable} · {selectedNetwork.range.totalUsable} hosts utilizables
+                  {selectedNetwork.range.firstUsable} a{" "}
+                  {selectedNetwork.range.lastUsable} ·{" "}
+                  {selectedNetwork.range.totalUsable} hosts utilizables
                 </p>
 
                 {selectedNetwork.description && (
@@ -716,7 +613,9 @@ export default function IpManagementPage() {
 
               <MetricCard
                 label="Reservadas"
-                value={inventory?.totals.reserved ?? selectedNetwork.totals.reserved}
+                value={
+                  inventory?.totals.reserved ?? selectedNetwork.totals.reserved
+                }
                 icon={<Bookmark size={18} />}
               />
             </div>
@@ -744,7 +643,7 @@ export default function IpManagementPage() {
               <select
                 value={status}
                 onChange={(event) => {
-                  setStatus(event.target.value as IpStatus | '');
+                  setStatus(event.target.value as IpStatus | "");
                   setPage(1);
                 }}
                 className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-700 outline-none transition focus:border-company-primary focus:ring-2 focus:ring-company-primary/10"
@@ -767,10 +666,7 @@ export default function IpManagementPage() {
 
             {inventoryLoading && !inventory ? (
               <div className="mt-5">
-                <PageLoader
-                  variant="table"
-                  rows={6}
-                />
+                <PageLoader variant="table" rows={6} />
               </div>
             ) : (
               <>
@@ -796,9 +692,7 @@ export default function IpManagementPage() {
                             {item.ipAddress}
                           </td>
 
-                          <td className="px-4 py-3">
-                            {statusBadge(item)}
-                          </td>
+                          <td className="px-4 py-3">{statusBadge(item)}</td>
 
                           <td className="px-4 py-3 text-slate-700">
                             {item.server ? (
@@ -809,9 +703,22 @@ export default function IpManagementPage() {
                               </div>
                             ) : item.reservation ? (
                               <div>
-                                <p className="font-medium">Reserva</p>
+                                <p className="font-medium">
+                                  {item.reservation.provisioningServer
+                                    ? "Aprovisionamiento pendiente"
+                                    : "Reserva"}
+                                </p>
                                 <p className="text-xs text-slate-500">
-                                  {item.reservation.description || 'Sin descripción'}
+                                  {item.reservation.provisioningServer && (
+                                    <span className="block font-hostname">
+                                      {
+                                        item.reservation.provisioningServer
+                                          .hostname
+                                      }
+                                    </span>
+                                  )}
+                                  {item.reservation.description ||
+                                    "Sin descripción"}
                                 </p>
                               </div>
                             ) : item.previousServer ? (
@@ -821,7 +728,10 @@ export default function IpManagementPage() {
                                 </p>
 
                                 <p className="text-xs text-slate-500">
-                                  <span className="font-hostname">{item.previousServer.hostname}</span> está inactivo
+                                  <span className="font-hostname">
+                                    {item.previousServer.hostname}
+                                  </span>{" "}
+                                  está inactivo
                                 </p>
                               </div>
                             ) : (
@@ -832,30 +742,44 @@ export default function IpManagementPage() {
                           <td className="px-4 py-3 text-slate-600">
                             {item.server?.company?.name ??
                               item.previousServer?.company?.name ??
-                              '—'}
+                              "—"}
                           </td>
 
                           <td className="px-4 py-3">
                             <div className="flex justify-end gap-2">
-                              {item.status === 'FREE' && !item.requiresRelease && (
-                                <button
-                                  type="button"
-                                  onClick={() => openReservation(item.ipAddress)}
-                                  className="rounded-lg px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-50"
-                                >
-                                  Reservar
-                                </button>
-                              )}
+                              {item.status === "FREE" &&
+                                !item.requiresRelease && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      openReservation(item.ipAddress)
+                                    }
+                                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-50"
+                                  >
+                                    Reservar
+                                  </button>
+                                )}
 
-                              {item.status === 'RESERVED' && item.reservation && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleReleaseReservation(item)}
-                                  className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
-                                >
-                                  Liberar reserva
-                                </button>
-                              )}
+                              {item.status === "RESERVED" &&
+                                item.reservation &&
+                                (item.reservation.provisioningServer ? (
+                                  <span
+                                    className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200"
+                                    title={`Elimina ${item.reservation.provisioningServer.hostname} para liberar esta IP`}
+                                  >
+                                    Vinculada al servidor
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleReleaseReservation(item)
+                                    }
+                                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
+                                  >
+                                    Liberar reserva
+                                  </button>
+                                ))}
 
                               {item.requiresRelease && (
                                 <button
@@ -873,7 +797,10 @@ export default function IpManagementPage() {
 
                       {inventory?.items.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
+                          <td
+                            colSpan={5}
+                            className="px-4 py-10 text-center text-slate-500"
+                          >
                             No hay IPs que coincidan con los filtros.
                           </td>
                         </tr>
@@ -911,12 +838,15 @@ export default function IpManagementPage() {
                     </button>
 
                     <span className="text-sm text-slate-600">
-                      Página {inventory?.page ?? 1} de {inventory?.totalPages ?? 1}
+                      Página {inventory?.page ?? 1} de{" "}
+                      {inventory?.totalPages ?? 1}
                     </span>
 
                     <button
                       type="button"
-                      disabled={(inventory?.page ?? 1) >= (inventory?.totalPages ?? 1)}
+                      disabled={
+                        (inventory?.page ?? 1) >= (inventory?.totalPages ?? 1)
+                      }
                       onClick={() => setPage((value) => value + 1)}
                       className="rounded-lg border border-slate-300 bg-white p-2 transition hover:bg-slate-50 disabled:opacity-40"
                     >
@@ -940,7 +870,7 @@ export default function IpManagementPage() {
                 </p>
 
                 <h2 className="mt-1 text-lg font-bold text-slate-900">
-                  {editingNetwork ? 'Editar red/VLAN' : 'Nueva red/VLAN'}
+                  {editingNetwork ? "Editar red/VLAN" : "Nueva red/VLAN"}
                 </h2>
               </div>
 
@@ -1008,7 +938,7 @@ export default function IpManagementPage() {
                 disabled={savingNetwork}
                 className="ui-btn ui-btn-primary btn-company-primary rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm disabled:opacity-60"
               >
-                {savingNetwork ? 'Guardando...' : 'Guardar'}
+                {savingNetwork ? "Guardando..." : "Guardar"}
               </button>
             </div>
           </form>
@@ -1053,7 +983,9 @@ export default function IpManagementPage() {
             <Field label="Motivo / descripción">
               <textarea
                 value={reservationDescription}
-                onChange={(event) => setReservationDescription(event.target.value)}
+                onChange={(event) =>
+                  setReservationDescription(event.target.value)
+                }
                 className="ui-control min-h-24 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-company-primary focus:ring-2 focus:ring-company-primary/10"
                 placeholder="Gateway, VIP, appliance, reserva temporal..."
               />
@@ -1074,13 +1006,12 @@ export default function IpManagementPage() {
                 disabled={savingReservation}
                 className="ui-btn ui-btn-primary btn-company-primary rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm disabled:opacity-60"
               >
-                {savingReservation ? 'Reservando...' : 'Reservar'}
+                {savingReservation ? "Reservando..." : "Reservar"}
               </button>
             </div>
           </form>
         </Modal>
       )}
-
 
       <ConfirmDialog
         open={pendingDeleteNetwork !== null}
@@ -1097,7 +1028,8 @@ export default function IpManagementPage() {
                 {pendingDeleteNetwork.cidr}
               </p>
               <p className="text-xs leading-5 text-slate-500">
-                La operación solo se completará si no existen servidores vinculados ni reservas IP activas.
+                La operación solo se completará si no existen servidores
+                vinculados ni reservas IP activas.
               </p>
             </div>
           ) : null
@@ -1158,7 +1090,6 @@ export default function IpManagementPage() {
         onClose={() => setPendingHistoricalRelease(null)}
         onConfirm={confirmReleaseHistorical}
       />
-
     </div>
   );
 }
@@ -1204,21 +1135,13 @@ function Modal({
     >
       <div className="ui-table-shell ui-panel w-full max-w-lg overflow-hidden rounded-2xl border border-white/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
         <div className="h-1 bg-company-primary" />
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
       <label className="mb-1.5 block text-sm font-semibold text-slate-700">
