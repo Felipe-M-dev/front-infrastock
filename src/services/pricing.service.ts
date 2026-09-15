@@ -1,4 +1,7 @@
-import { apiRequest } from './api.service';
+import {
+  apiFetch,
+  apiRequest,
+} from './api.service';
 
 export interface EconomicIndicator {
   id: number;
@@ -132,6 +135,100 @@ export interface DeletePricingTariffResponse {
   code: string;
   name: string;
   deleted: true;
+}
+
+export interface CreateProviderQuotationPayload {
+  companyId: number;
+  reference: string;
+  operatingSystemId: number;
+  architecture:
+    | '32 bits'
+    | '64 bits';
+  databaseSoftwareId?: number;
+  cpuCores: number;
+  ramGb: number;
+  diskGb: number;
+  networkId: number;
+  ipAddress: string;
+}
+
+export interface ProviderQuotationDownload {
+  blob: Blob;
+  filename: string;
+}
+
+function providerQuotationFilename(
+  disposition: string | null,
+  reference: string,
+) {
+  const encodedMatch =
+    disposition?.match(
+      /filename\*=UTF-8''([^;]+)/i,
+    );
+
+  if (encodedMatch?.[1]) {
+    try {
+      return decodeURIComponent(
+        encodedMatch[1],
+      );
+    } catch {
+      // Continúa con filename simple o el nombre de respaldo.
+    }
+  }
+
+  const simpleMatch =
+    disposition?.match(
+      /filename="?([^";]+)"?/i,
+    );
+
+  if (simpleMatch?.[1]) {
+    return simpleMatch[1].trim();
+  }
+
+  const safeReference =
+    reference
+      .normalize('NFD')
+      .replace(
+        /[\u0300-\u036f]/g,
+        '',
+      )
+      .replace(
+        /[^a-zA-Z0-9_-]+/g,
+        '-',
+      )
+      .replace(
+        /^-+|-+$/g,
+        '',
+      );
+
+  return `${safeReference || 'servidor'}.xlsx`;
+}
+
+export async function generateProviderQuotation(
+  payload: CreateProviderQuotationPayload,
+): Promise<ProviderQuotationDownload> {
+  const response =
+    await apiFetch(
+      '/pricing/provider-quotation',
+      {
+        method: 'POST',
+        body: payload,
+        fallbackMessage:
+          'No fue posible generar la solicitud XLSX del proveedor.',
+      },
+    );
+
+  return {
+    blob:
+      await response.blob(),
+    filename:
+      providerQuotationFilename(
+        response.headers.get(
+          'content-disposition',
+        ),
+        payload.reference,
+      ),
+  };
 }
 
 export async function getLatestUf(): Promise<EconomicIndicator | null> {

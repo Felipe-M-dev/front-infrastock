@@ -25,6 +25,7 @@ export interface ProfileUser {
   username: string;
   name: string;
   email: string | null;
+  phone: string | null;
   avatarUrl: string | null;
   role: ProfileRole;
   company: ProfileCompany;
@@ -33,6 +34,7 @@ export interface ProfileUser {
 export interface UpdateMyProfilePayload {
   name: string;
   email?: string;
+  phone?: string;
   currentPassword?: string;
   password?: string;
 }

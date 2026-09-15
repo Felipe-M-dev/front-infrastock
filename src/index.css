@@ -299,6 +299,42 @@ samp,
   outline-offset: 3px;
 }
 
+/* CTA complementario para generar la solicitud XLSX del proveedor. */
+.quote-provider-button {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 62%, var(--color-secondary) 38%);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary) 76%, var(--color-secondary) 24%),
+      color-mix(in srgb, var(--color-primary) 48%, var(--color-secondary) 52%)
+    );
+  color: white;
+  box-shadow:
+    0 10px 26px color-mix(in srgb, var(--color-secondary) 24%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition:
+    transform 180ms ease,
+    filter 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.quote-provider-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 14px 34px color-mix(in srgb, var(--color-secondary) 32%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.quote-provider-button:active {
+  transform: translateY(0);
+}
+
+.quote-provider-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+  outline-offset: 3px;
+}
+
 /*
  * Skeleton loader reutilizable de InfraStock.
  * Agregar este bloque al final de frontend/src/index.css.

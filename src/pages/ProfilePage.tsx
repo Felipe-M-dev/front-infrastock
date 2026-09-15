@@ -12,6 +12,7 @@ import {
   KeyRound,
   Loader2,
   Mail,
+  Phone,
   Save,
   ShieldCheck,
   Trash2,
@@ -64,6 +65,11 @@ export default function ProfilePage() {
   const [
     email,
     setEmail,
+  ] = useState('');
+
+  const [
+    phone,
+    setPhone,
   ] = useState('');
 
   const [
@@ -125,6 +131,10 @@ export default function ProfilePage() {
 
         setEmail(
           data.email ?? '',
+        );
+
+        setPhone(
+          data.phone ?? '',
         );
       } catch (caughtError) {
         setError(
@@ -255,9 +265,24 @@ export default function ProfilePage() {
     const cleanName =
       name.trim();
 
+    const cleanPhone =
+      phone.trim();
+
     if (!cleanName) {
       setError(
         'El nombre no puede quedar vacío.',
+      );
+      return;
+    }
+
+    if (
+      cleanPhone &&
+      !/^(?=.*\d)[+\d\s()-]+$/.test(
+        cleanPhone,
+      )
+    ) {
+      setError(
+        'El teléfono solo puede contener números, espacios, +, paréntesis y guiones.',
       );
       return;
     }
@@ -306,6 +331,10 @@ export default function ProfilePage() {
             email.trim() ||
             undefined,
 
+          phone:
+            cleanPhone ||
+            undefined,
+
           currentPassword:
             password
               ? currentPassword
@@ -326,6 +355,10 @@ export default function ProfilePage() {
 
       setEmail(
         updated.email ?? '',
+      );
+
+      setPhone(
+        updated.phone ?? '',
       );
 
       const passwordWasChanged =
@@ -502,34 +535,67 @@ export default function ProfilePage() {
               </label>
             </div>
 
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-slate-700">
-                Email
-              </span>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-semibold text-slate-700">
+                  Email
+                </span>
 
-              <div className="relative">
-                <Mail
-                  size={17}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
+                <div className="relative">
+                  <Mail
+                    size={17}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
 
-                <input
-                  type="email"
-                  value={
-                    email
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    setEmail(
-                      event.target.value,
-                    )
-                  }
-                  placeholder="usuario@empresa.cl"
-                  className="ui-control w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3.5 text-sm outline-none transition focus:border-company-primary"
-                />
-              </div>
-            </label>
+                  <input
+                    type="email"
+                    value={
+                      email
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setEmail(
+                        event.target.value,
+                      )
+                    }
+                    placeholder="usuario@empresa.cl"
+                    className="ui-control w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3.5 text-sm outline-none transition focus:border-company-primary"
+                  />
+                </div>
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-semibold text-slate-700">
+                  Teléfono
+                </span>
+
+                <div className="relative">
+                  <Phone
+                    size={17}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+
+                  <input
+                    type="tel"
+                    maxLength={32}
+                    value={
+                      phone
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setPhone(
+                        event.target.value,
+                      )
+                    }
+                    placeholder="+56 9 1234 5678"
+                    autoComplete="tel"
+                    className="ui-control w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3.5 text-sm outline-none transition focus:border-company-primary"
+                  />
+                </div>
+              </label>
+            </div>
 
             <div className="border-t border-slate-100 pt-5">
               <div className="mb-4 flex items-start gap-3">

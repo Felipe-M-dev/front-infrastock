@@ -20,6 +20,7 @@ export interface User {
   username: string;
   name: string;
   email: string | null;
+  phone: string | null;
 
   role:
     | 'ADMIN'

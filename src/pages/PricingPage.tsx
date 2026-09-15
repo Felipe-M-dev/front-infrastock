@@ -9,6 +9,7 @@ import {
   Calculator,
   Check,
   Download,
+  FileSpreadsheet,
   Plus,
   RefreshCw,
   Save,
@@ -18,6 +19,7 @@ import {
 
 import ServerValuationPanel from '../components/ServerValuationPanel';
 import PageLoader from '../components/PageLoader';
+import ProviderQuotationModal from '../components/ProviderQuotationModal';
 import { useToast } from '../components/ToastProvider';
 
 import {
@@ -36,6 +38,11 @@ import {
 import {
   getUser,
 } from '../services/session.service';
+
+import {
+  getAccessibleCompanies,
+  type AccessibleCompany,
+} from '../services/company-scope.service';
 
 interface TariffDraft {
   name: string;
@@ -257,10 +264,20 @@ export default function PricingPage() {
   const [manualValue, setManualValue] =
     useState('');
 
-  const [quoteCompany, setQuoteCompany] =
-    useState('');
+  const [accessibleCompanies, setAccessibleCompanies] =
+    useState<AccessibleCompany[]>([]);
+
+  const [quoteCompanyId, setQuoteCompanyId] =
+    useState(
+      user?.company?.id
+        ? String(user.company.id)
+        : '',
+    );
 
   const [quoteReference, setQuoteReference] =
+    useState('');
+
+  const [quoteTicket, setQuoteTicket] =
     useState('');
 
   const [quoteOsCode, setQuoteOsCode] =
@@ -283,6 +300,23 @@ export default function PricingPage() {
 
   const [quoteGenerated, setQuoteGenerated] =
     useState(false);
+
+  const [providerQuotationOpen, setProviderQuotationOpen] =
+    useState(false);
+
+  const quoteCompany =
+    useMemo(
+      () =>
+        accessibleCompanies.find(
+          (company) =>
+            String(company.id) ===
+            quoteCompanyId,
+        ) ?? null,
+      [
+        accessibleCompanies,
+        quoteCompanyId,
+      ],
+    );
 
   const groupedTariffs =
     useMemo(() => {
@@ -739,10 +773,52 @@ export default function PricingPage() {
       setError('');
 
       if (canViewTariffs) {
-        const data =
-          await getPricingSummary();
+        const [data, companies] =
+          await Promise.all([
+            getPricingSummary(),
+            getAccessibleCompanies(),
+          ]);
 
         setSummary(data);
+        setAccessibleCompanies(
+          companies,
+        );
+
+        setQuoteCompanyId(
+          (current) => {
+            if (
+              companies.some(
+                (company) =>
+                  String(company.id) ===
+                  current,
+              )
+            ) {
+              return current;
+            }
+
+            const ownCompanyId =
+              user?.company?.id;
+
+            if (
+              ownCompanyId &&
+              companies.some(
+                (company) =>
+                  company.id ===
+                  ownCompanyId,
+              )
+            ) {
+              return String(
+                ownCompanyId,
+              );
+            }
+
+            return companies[0]
+              ? String(
+                  companies[0].id,
+                )
+              : '';
+          },
+        );
 
         setDrafts(
           Object.fromEntries(
@@ -1233,6 +1309,18 @@ export default function PricingPage() {
   }
 
   function handleGenerateQuote() {
+    if (!quoteCompany) {
+      const message =
+        'Selecciona una empresa o cliente para generar la cotización.';
+
+      setError(message);
+      toast.error(
+        'No fue posible generar la cotización',
+        message,
+      );
+      return;
+    }
+
     if (
       quoteCalculation.total <= 0
     ) {
@@ -1261,6 +1349,52 @@ export default function PricingPage() {
     );
   }
 
+  function openProviderQuotation() {
+    if (!quoteCompany) {
+      const message =
+        'Selecciona una empresa o cliente antes de generar la solicitud XLSX.';
+
+      setError(message);
+      toast.error(
+        'No fue posible preparar la solicitud',
+        message,
+      );
+      return;
+    }
+
+    if (!quoteReference.trim()) {
+      const message =
+        'Completa la referencia. Este valor será el nombre de la máquina virtual y del archivo XLSX.';
+
+      setError(message);
+      toast.error(
+        'Referencia obligatoria',
+        message,
+      );
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setProviderQuotationOpen(
+      true,
+    );
+  }
+
+  function handleProviderQuotationGenerated(
+    hostname: string,
+  ) {
+    const message =
+      `Se generó la solicitud XLSX y se registró el servidor ${hostname} con estado INACTIVO.`;
+
+    setError('');
+    setSuccess(message);
+    toast.success(
+      'Cotización generada correctamente',
+      message,
+    );
+  }
+
   function handleDownloadQuoteImage() {
     if (
       !quoteGenerated
@@ -1280,7 +1414,7 @@ export default function PricingPage() {
       68;
 
     const headerHeight =
-      250;
+      280;
 
     const footerHeight =
       250;
@@ -1353,7 +1487,7 @@ export default function PricingPage() {
     ctx.font =
       '700 27px Arial';
     ctx.fillText(
-      quoteCompany.trim() ||
+      quoteCompany?.name ??
         'InfraStock',
       54,
       155,
@@ -1383,8 +1517,14 @@ export default function PricingPage() {
       195,
     );
 
+    ctx.fillText(
+      `Nro. Ticket: ${quoteTicket.trim() || 'No informado'}`,
+      54,
+      230,
+    );
+
     const tableTop =
-      230;
+      260;
 
     ctx.fillStyle =
       primary;
@@ -1574,7 +1714,7 @@ export default function PricingPage() {
       );
 
     const safeName =
-      (quoteCompany.trim() ||
+      (quoteCompany?.name.trim() ||
         quoteReference.trim() ||
         'servidor')
         .normalize('NFD')
@@ -1774,18 +1914,50 @@ export default function PricingPage() {
         <div className="grid gap-6 p-5 xl:grid-cols-[minmax(0,1fr)_minmax(420px,0.9fr)]">
           <div className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div>
+              <div className="sm:col-span-2">
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Empresa / cliente
                 </label>
 
-                <input
-                  value={quoteCompany}
+                <select
+                  required
+                  value={quoteCompanyId}
                   onChange={(event) => {
-                    setQuoteCompany(event.target.value);
+                    setQuoteCompanyId(event.target.value);
                     markQuoteDirty();
                   }}
-                  placeholder="Opcional"
+                  className="ui-control w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-company-primary focus:ring-2 focus:ring-company-primary/10"
+                >
+                  <option value="">
+                    Selecciona una empresa o cliente
+                  </option>
+
+                  {accessibleCompanies.map(
+                    (company) => (
+                      <option
+                        key={company.id}
+                        value={company.id}
+                      >
+                        {company.name}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Nro. Ticket
+                </label>
+
+                <input
+                  value={quoteTicket}
+                  maxLength={80}
+                  onChange={(event) => {
+                    setQuoteTicket(event.target.value);
+                    markQuoteDirty();
+                  }}
+                  placeholder="Ej: T0123456"
                   className="ui-control w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-company-primary focus:ring-2 focus:ring-company-primary/10"
                 />
               </div>
@@ -2053,16 +2225,39 @@ export default function PricingPage() {
             </div>
 
             {quoteGenerated && (
-              <button
-                type="button"
-                onClick={handleDownloadQuoteImage}
-                className="quote-download-button group mt-4 inline-flex w-full items-center justify-center gap-3 rounded-xl px-5 py-3.5 text-sm font-bold"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/20 transition group-hover:bg-white/20">
-                  <Download size={17} strokeWidth={2.2} />
-                </span>
-                Descargar cotización en PNG
-              </button>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={handleDownloadQuoteImage}
+                  className="quote-download-button group inline-flex min-h-16 w-full items-center justify-center gap-3 rounded-xl px-5 py-3.5 text-sm font-bold"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/20 transition group-hover:bg-white/20">
+                    <Download size={17} strokeWidth={2.2} />
+                  </span>
+                  <span className="flex flex-col items-start leading-tight">
+                    <span>Descargar cotización</span>
+                    <span className="mt-1 text-xs font-semibold text-white/75">
+                      Formato PNG
+                    </span>
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={openProviderQuotation}
+                  className="quote-provider-button group inline-flex min-h-16 w-full items-center justify-center gap-3 rounded-xl px-5 py-3.5 text-sm font-bold"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/20 transition group-hover:bg-white/20">
+                    <FileSpreadsheet size={17} strokeWidth={2.2} />
+                  </span>
+                  <span className="flex flex-col items-start leading-tight">
+                    <span>Generar solicitud</span>
+                    <span className="mt-1 text-xs font-semibold text-white/75">
+                      XLSX proveedor
+                    </span>
+                  </span>
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -2454,6 +2649,52 @@ export default function PricingPage() {
           ),
         )}
       </section>
+      )}
+
+      {quoteCompany && providerQuotationOpen && (
+        <ProviderQuotationModal
+          companyId={quoteCompany.id}
+          companyName={quoteCompany.name}
+          reference={quoteReference.trim()}
+          initialOperatingSystemName={
+            quoteOsCode
+              ? tariffByCode.get(
+                  quoteOsCode,
+                )?.operatingSystemName ??
+                tariffByCode.get(
+                  quoteOsCode,
+                )?.name
+              : null
+          }
+          initialDatabaseSoftwareId={
+            quoteDbCode
+              ? tariffByCode.get(
+                  quoteDbCode,
+                )?.softwareId
+              : null
+          }
+          initialCpuCores={
+            parseQuantity(
+              quoteCpu,
+            )
+          }
+          initialRamGb={
+            parseQuantity(
+              quoteRam,
+            )
+          }
+          initialDiskGb={
+            parseQuantity(
+              quoteDisk,
+            )
+          }
+          onClose={() =>
+            setProviderQuotationOpen(
+              false,
+            )
+          }
+          onGenerated={handleProviderQuotationGenerated}
+        />
       )}
 
       {deleteCandidate && (

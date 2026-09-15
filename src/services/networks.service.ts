@@ -79,6 +79,47 @@ export interface NetworkPayload {
   active?: boolean;
 }
 
+export interface ProvisioningNetwork {
+  id: number;
+  name: string;
+  cidr: string;
+  firstUsable: string;
+  lastUsable: string;
+}
+
+export interface ProvisioningAvailableIpsResponse {
+  network: {
+    id: number;
+    name: string;
+    cidr: string;
+  };
+  items: string[];
+}
+
+export async function getProvisioningNetworks(): Promise<
+  ProvisioningNetwork[]
+> {
+  return apiRequest<ProvisioningNetwork[]>(
+    '/networks/provisioning-options',
+    {
+      fallbackMessage:
+        'No fue posible obtener las redes disponibles para aprovisionamiento.',
+    },
+  );
+}
+
+export async function getProvisioningAvailableIps(
+  networkId: number,
+): Promise<ProvisioningAvailableIpsResponse> {
+  return apiRequest<ProvisioningAvailableIpsResponse>(
+    `/networks/${networkId}/provisioning-available-ips`,
+    {
+      fallbackMessage:
+        'No fue posible obtener las IP disponibles de la red seleccionada.',
+    },
+  );
+}
+
 export async function getNetworks(): Promise<
   NetworkSummary[]
 > {
