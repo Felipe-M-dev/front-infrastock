@@ -10,11 +10,14 @@ import {
   Pencil,
   Plus,
   Power,
+  Trash2,
   X,
 } from 'lucide-react';
 
 import AuditHistoryModal from '../components/AuditHistoryModal';
+import DeleteCatalogConfirmModal from '../components/DeleteCatalogConfirmModal';
 import PageLoader from '../components/PageLoader';
+import { useToast } from '../components/ToastProvider';
 
 import {
   getAuditHistory,
@@ -27,6 +30,10 @@ import {
   updateOperatingSystem,
   type OperatingSystem,
 } from '../services/catalogs.service';
+
+import {
+  deleteOperatingSystemCatalogItem,
+} from '../services/catalog-maintenance.service';
 
 import {
   getUser,
@@ -43,6 +50,8 @@ interface OperatingSystemsPageProps {
 export default function OperatingSystemsPage({
   embedded = false,
 }: OperatingSystemsPageProps) {
+  const toast = useToast();
+
   const currentUser =
     getUser();
 
@@ -51,6 +60,10 @@ export default function OperatingSystemsPage({
       'ADMIN' ||
     currentUser?.role ===
       'EDITOR';
+
+  const canDelete =
+    currentUser?.role ===
+    'ADMIN';
 
   const [
     operatingSystems,
@@ -67,6 +80,11 @@ export default function OperatingSystemsPage({
   const [
     error,
     setError,
+  ] = useState('');
+
+  const [
+    success,
+    setSuccess,
   ] = useState('');
 
   const [
@@ -95,6 +113,20 @@ export default function OperatingSystemsPage({
     saving,
     setSaving,
   ] = useState(false);
+
+  const [
+    deletingId,
+    setDeletingId,
+  ] = useState<number | null>(
+    null,
+  );
+
+  const [
+    deleteTarget,
+    setDeleteTarget,
+  ] = useState<
+    OperatingSystem | null
+  >(null);
 
   const [
     historyOpen,
@@ -132,21 +164,51 @@ export default function OperatingSystemsPage({
       setOperatingSystems(
         data,
       );
-    } catch (error) {
-      if (
-        error instanceof Error
-      ) {
-        setError(
-          error.message,
-        );
-      }
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'No fue posible obtener los sistemas operativos.',
+      );
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadData();
+    let cancelled = false;
+
+    getOperatingSystems()
+      .then((data) => {
+        if (cancelled) {
+          return;
+        }
+
+        setOperatingSystems(
+          data,
+        );
+        setError('');
+      })
+      .catch((caughtError) => {
+        if (cancelled) {
+          return;
+        }
+
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : 'No fue posible obtener los sistemas operativos.',
+        );
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function resetForm() {
@@ -161,6 +223,8 @@ export default function OperatingSystemsPage({
     }
 
     resetForm();
+    setError('');
+    setSuccess('');
     setShowForm(true);
   }
 
@@ -176,7 +240,8 @@ export default function OperatingSystemsPage({
     setVersion(
       item.version,
     );
-
+    setError('');
+    setSuccess('');
     setShowForm(true);
   }
 
@@ -211,18 +276,12 @@ export default function OperatingSystemsPage({
       setHistoryItems(
         items,
       );
-    } catch (error) {
-      if (
-        error instanceof Error
-      ) {
-        setHistoryError(
-          error.message,
-        );
-      } else {
-        setHistoryError(
-          'No fue posible obtener el historial.',
-        );
-      }
+    } catch (caughtError) {
+      setHistoryError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'No fue posible obtener el historial.',
+      );
     } finally {
       setHistoryLoading(
         false,
@@ -250,6 +309,7 @@ export default function OperatingSystemsPage({
     try {
       setSaving(true);
       setError('');
+      setSuccess('');
 
       if (editing) {
         await updateOperatingSystem(
@@ -257,33 +317,37 @@ export default function OperatingSystemsPage({
           {
             name:
               name.trim(),
-
             version:
               version.trim(),
           },
+        );
+
+        setSuccess(
+          'Sistema operativo actualizado correctamente.',
         );
       } else {
         await createOperatingSystem({
           name:
             name.trim(),
-
           version:
             version.trim(),
         });
+
+        setSuccess(
+          'Sistema operativo creado correctamente.',
+        );
       }
 
       resetForm();
       setShowForm(false);
 
       await loadData();
-    } catch (error) {
-      if (
-        error instanceof Error
-      ) {
-        setError(
-          error.message,
-        );
-      }
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'No fue posible guardar el sistema operativo.',
+      );
     } finally {
       setSaving(false);
     }
@@ -298,6 +362,7 @@ export default function OperatingSystemsPage({
 
     try {
       setError('');
+      setSuccess('');
 
       await updateOperatingSystem(
         item.id,
@@ -307,15 +372,83 @@ export default function OperatingSystemsPage({
         },
       );
 
+      setSuccess(
+        item.active
+          ? `${item.name} ${item.version} desactivado.`
+          : `${item.name} ${item.version} activado.`,
+      );
+
       await loadData();
-    } catch (error) {
-      if (
-        error instanceof Error
-      ) {
-        setError(
-          error.message,
-        );
-      }
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'No fue posible cambiar el estado.',
+      );
+    }
+  }
+
+  function openDelete(
+    item: OperatingSystem,
+  ) {
+    if (
+      !canDelete ||
+      deletingId !== null
+    ) {
+      return;
+    }
+
+    setDeleteTarget(item);
+  }
+
+  function closeDelete() {
+    if (deletingId !== null) {
+      return;
+    }
+
+    setDeleteTarget(null);
+  }
+
+  async function confirmDelete() {
+    if (
+      !canDelete ||
+      !deleteTarget ||
+      deletingId !== null
+    ) {
+      return;
+    }
+
+    const item = deleteTarget;
+
+    try {
+      setDeletingId(item.id);
+      setError('');
+      setSuccess('');
+
+      await deleteOperatingSystemCatalogItem(
+        item.id,
+      );
+
+      setDeleteTarget(null);
+
+      toast.success(
+        'Sistema operativo eliminado',
+        `${item.name} ${item.version} fue eliminado definitivamente del catálogo.`,
+      );
+
+      await loadData();
+    } catch (caughtError) {
+      const message =
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'No fue posible eliminar el sistema operativo.';
+
+      toast.error(
+        'No se pudo eliminar el sistema operativo',
+        message,
+      );
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -329,10 +462,7 @@ export default function OperatingSystemsPage({
         <p className="mt-1 text-xs text-slate-400">
           Modificado por{' '}
           <span className="font-medium text-slate-500">
-            {
-              item.updatedBy
-                .username
-            }
+            {item.updatedBy.username}
           </span>{' '}
           ·{' '}
           {formatDateTime(
@@ -349,10 +479,7 @@ export default function OperatingSystemsPage({
         <p className="mt-1 text-xs text-slate-400">
           Creado por{' '}
           <span className="font-medium text-slate-500">
-            {
-              item.createdBy
-                .username
-            }
+            {item.createdBy.username}
           </span>{' '}
           ·{' '}
           {formatDateTime(
@@ -372,89 +499,75 @@ export default function OperatingSystemsPage({
     );
   }
 
+  const headerContent = (
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className={
+        embedded
+          ? ''
+          : 'flex items-start gap-4'
+      }>
+        {!embedded && (
+          <div className="ui-page-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-company-primary/10 text-company-primary ring-1 ring-company-primary/10">
+            <MonitorCog size={24} />
+          </div>
+        )}
+
+        <div>
+          <p className={
+            embedded
+              ? 'text-xs font-bold uppercase tracking-[0.14em] text-company-primary'
+              : 'text-xs font-bold uppercase tracking-[0.16em] text-company-primary'
+          }>
+            {embedded
+              ? 'Inventario reutilizable'
+              : 'Catálogo técnico'}
+          </p>
+
+          <h2 className={
+            embedded
+              ? 'mt-1 text-lg font-bold text-slate-900'
+              : 'mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl'
+          }>
+            Sistemas Operativos
+          </h2>
+
+          <p className="mt-1 text-sm leading-6 text-slate-500">
+            Administra sistemas operativos y versiones reutilizables en el inventario.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {!loading && (
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600">
+            {operatingSystems.length} registro{operatingSystems.length === 1 ? '' : 's'}
+          </span>
+        )}
+
+        {canEdit && (
+          <button
+            type="button"
+            onClick={openCreate}
+            className="ui-btn ui-btn-primary btn-company-primary inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm"
+          >
+            <Plus size={18} />
+            Agregar SO
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="ui-page space-y-5">
       {embedded ? (
         <section className="ui-panel rounded-2xl border border-white/80 bg-white/90 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-sm sm:p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-company-primary">
-                Inventario reutilizable
-              </p>
-
-              <h2 className="mt-1 text-lg font-bold text-slate-900">
-                Sistemas Operativos
-              </h2>
-
-              <p className="mt-1 text-sm leading-6 text-slate-500">
-                Administra sistemas operativos y versiones reutilizables en el inventario.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {!loading && (
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600">
-                  {operatingSystems.length} registro{operatingSystems.length === 1 ? '' : 's'}
-                </span>
-              )}
-
-              {canEdit && (
-                <button
-                  type="button"
-                  onClick={openCreate}
-                  className="ui-btn ui-btn-primary btn-company-primary inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm"
-                >
-                  <Plus size={18} />
-                  Agregar SO
-                </button>
-              )}
-            </div>
-          </div>
+          {headerContent}
         </section>
       ) : (
         <section className="ui-table-shell ui-panel ui-page-header relative overflow-hidden rounded-2xl border border-white/80 bg-white/90 p-5 shadow-[0_12px_35px_rgba(15,23,42,0.07)] backdrop-blur-sm sm:p-6">
           <div className="absolute inset-x-0 top-0 h-1 bg-company-primary" />
-
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="ui-page-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-company-primary/10 text-company-primary ring-1 ring-company-primary/10">
-                <MonitorCog size={24} />
-              </div>
-
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-company-primary">
-                  Catálogo técnico
-                </p>
-
-                <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-                  Sistemas Operativos
-                </h2>
-
-                <p className="mt-1.5 text-sm leading-6 text-slate-500">
-                  Administra sistemas operativos y versiones reutilizables en el inventario.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {!loading && (
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600">
-                  {operatingSystems.length} registro{operatingSystems.length === 1 ? '' : 's'}
-                </span>
-              )}
-
-              {canEdit && (
-                <button
-                  type="button"
-                  onClick={openCreate}
-                  className="ui-btn ui-btn-primary btn-company-primary inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm"
-                >
-                  <Plus size={18} />
-                  Agregar SO
-                </button>
-              )}
-            </div>
-          </div>
+          {headerContent}
         </section>
       )}
 
@@ -464,18 +577,21 @@ export default function OperatingSystemsPage({
         </div>
       )}
 
+      {success && (
+        <div className="ui-alert ui-alert-success rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 shadow-sm">
+          {success}
+        </div>
+      )}
+
       {loading ? (
         <PageLoader
           variant="table"
           rows={6}
         />
-      ) : operatingSystems.length ===
-        0 ? (
+      ) : operatingSystems.length === 0 ? (
         <div className="ui-panel rounded-2xl border border-dashed border-slate-300 bg-white/90 px-6 py-14 text-center shadow-sm backdrop-blur-sm">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-            <MonitorCog
-              size={28}
-            />
+            <MonitorCog size={28} />
           </div>
 
           <p className="mt-4 font-semibold text-slate-700">
@@ -497,15 +613,12 @@ export default function OperatingSystemsPage({
                   <th className="px-5 py-3.5">
                     Sistema
                   </th>
-
                   <th className="px-5 py-3.5">
                     Versión
                   </th>
-
                   <th className="px-5 py-3.5">
                     Estado
                   </th>
-
                   <th className="px-5 py-3.5 text-right">
                     Acciones
                   </th>
@@ -516,18 +629,13 @@ export default function OperatingSystemsPage({
                 {operatingSystems.map(
                   (item) => (
                     <tr
-                      key={
-                        item.id
-                      }
+                      key={item.id}
                       className="text-sm transition hover:bg-slate-50/70"
                     >
                       <td className="px-5 py-4">
                         <p className="font-semibold text-slate-900">
-                          {
-                            item.name
-                          }
+                          {item.name}
                         </p>
-
                         {renderAuditLine(
                           item,
                         )}
@@ -535,9 +643,7 @@ export default function OperatingSystemsPage({
 
                       <td className="px-5 py-4">
                         <span className="font-version inline-flex rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-sm font-semibold text-slate-700">
-                          {
-                            item.version
-                          }
+                          {item.version}
                         </span>
                       </td>
 
@@ -560,18 +666,14 @@ export default function OperatingSystemsPage({
                           <button
                             type="button"
                             onClick={() =>
-                              openHistory(
+                              void openHistory(
                                 item,
                               )
                             }
                             title="Historial"
                             className="rounded-lg p-2 text-slate-500 transition hover:bg-white hover:text-company-primary hover:shadow-sm"
                           >
-                            <History
-                              size={
-                                17
-                              }
-                            />
+                            <History size={17} />
                           </button>
 
                           {canEdit && (
@@ -586,17 +688,13 @@ export default function OperatingSystemsPage({
                                 title="Editar"
                                 className="rounded-lg p-2 text-slate-500 transition hover:bg-white hover:text-company-primary hover:shadow-sm"
                               >
-                                <Pencil
-                                  size={
-                                    17
-                                  }
-                                />
+                                <Pencil size={17} />
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() =>
-                                  toggleActive(
+                                  void toggleActive(
                                     item,
                                   )
                                 }
@@ -611,13 +709,28 @@ export default function OperatingSystemsPage({
                                     : 'text-slate-500 hover:text-emerald-700'
                                 }`}
                               >
-                                <Power
-                                  size={
-                                    17
-                                  }
-                                />
+                                <Power size={17} />
                               </button>
                             </>
+                          )}
+
+                          {canDelete && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openDelete(
+                                  item,
+                                )
+                              }
+                              disabled={
+                                deletingId !== null
+                              }
+                              title="Eliminar"
+                              aria-label={`Eliminar ${item.name} ${item.version}`}
+                              className="rounded-lg p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-700 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              <Trash2 size={17} />
+                            </button>
                           )}
                         </div>
                       </td>
@@ -667,16 +780,14 @@ export default function OperatingSystemsPage({
                     <button
                       type="button"
                       onClick={() =>
-                        openHistory(
+                        void openHistory(
                           item,
                         )
                       }
                       title="Historial"
                       className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-company-primary"
                     >
-                      <History
-                        size={17}
-                      />
+                      <History size={17} />
                     </button>
 
                     {canEdit && (
@@ -691,15 +802,13 @@ export default function OperatingSystemsPage({
                           title="Editar"
                           className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-company-primary"
                         >
-                          <Pencil
-                            size={17}
-                          />
+                          <Pencil size={17} />
                         </button>
 
                         <button
                           type="button"
                           onClick={() =>
-                            toggleActive(
+                            void toggleActive(
                               item,
                             )
                           }
@@ -714,11 +823,28 @@ export default function OperatingSystemsPage({
                               : 'text-slate-500 hover:text-emerald-700'
                           }`}
                         >
-                          <Power
-                            size={17}
-                          />
+                          <Power size={17} />
                         </button>
                       </>
+                    )}
+
+                    {canDelete && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openDelete(
+                            item,
+                          )
+                        }
+                        disabled={
+                          deletingId !== null
+                        }
+                        title="Eliminar"
+                        aria-label={`Eliminar ${item.name} ${item.version}`}
+                        className="rounded-lg p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <Trash2 size={17} />
+                      </button>
                     )}
                   </div>
                 </div>
@@ -733,9 +859,7 @@ export default function OperatingSystemsPage({
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div
               className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px]"
-              onClick={
-                closeForm
-              }
+              onClick={closeForm}
             />
 
             <div className="ui-table-shell ui-panel relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-white/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
@@ -761,18 +885,12 @@ export default function OperatingSystemsPage({
 
                   <button
                     type="button"
-                    onClick={
-                      closeForm
-                    }
-                    disabled={
-                      saving
-                    }
+                    onClick={closeForm}
+                    disabled={saving}
                     className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
                     aria-label="Cerrar"
                   >
-                    <X
-                      size={20}
-                    />
+                    <X size={20} />
                   </button>
                 </div>
 
@@ -803,9 +921,7 @@ export default function OperatingSystemsPage({
                 )}
 
                 <form
-                  onSubmit={
-                    handleSubmit
-                  }
+                  onSubmit={handleSubmit}
                   className="space-y-4"
                 >
                   <div>
@@ -815,15 +931,10 @@ export default function OperatingSystemsPage({
 
                     <input
                       required
-                      value={
-                        name
-                      }
-                      onChange={(
-                        event,
-                      ) =>
+                      value={name}
+                      onChange={(event) =>
                         setName(
-                          event.target
-                            .value,
+                          event.target.value,
                         )
                       }
                       placeholder="RHEL"
@@ -838,15 +949,10 @@ export default function OperatingSystemsPage({
 
                     <input
                       required
-                      value={
-                        version
-                      }
-                      onChange={(
-                        event,
-                      ) =>
+                      value={version}
+                      onChange={(event) =>
                         setVersion(
-                          event.target
-                            .value,
+                          event.target.value,
                         )
                       }
                       placeholder="9.8"
@@ -857,12 +963,8 @@ export default function OperatingSystemsPage({
                   <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
                     <button
                       type="button"
-                      onClick={
-                        closeForm
-                      }
-                      disabled={
-                        saving
-                      }
+                      onClick={closeForm}
+                      disabled={saving}
                       className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
                     >
                       Cancelar
@@ -870,9 +972,7 @@ export default function OperatingSystemsPage({
 
                     <button
                       type="submit"
-                      disabled={
-                        saving
-                      }
+                      disabled={saving}
                       className="ui-btn ui-btn-primary btn-company-primary rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {saving
@@ -886,25 +986,32 @@ export default function OperatingSystemsPage({
           </div>
         )}
 
+      <DeleteCatalogConfirmModal
+        open={deleteTarget !== null}
+        title="Eliminar sistema operativo"
+        itemName={
+          deleteTarget
+            ? `${deleteTarget.name} ${deleteTarget.version}`
+            : ''
+        }
+        description="Solo se eliminará si no está asignado a servidores y no deja tarifas sin una familia de SO asociada."
+        deleting={
+          deleteTarget !== null &&
+          deletingId === deleteTarget.id
+        }
+        onClose={closeDelete}
+        onConfirm={() => {
+          void confirmDelete();
+        }}
+      />
+
       <AuditHistoryModal
-        open={
-          historyOpen
-        }
-        title={
-          historyTitle
-        }
-        loading={
-          historyLoading
-        }
-        error={
-          historyError
-        }
-        items={
-          historyItems
-        }
-        onClose={
-          closeHistory
-        }
+        open={historyOpen}
+        title={historyTitle}
+        loading={historyLoading}
+        error={historyError}
+        items={historyItems}
+        onClose={closeHistory}
       />
     </div>
   );

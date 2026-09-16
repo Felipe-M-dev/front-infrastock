@@ -1291,13 +1291,21 @@ export default function EndOfLifeMappingsPanel() {
 
             <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:justify-between sm:px-6">
               <a
-                href="https://endoflife.date/products"
+                href={
+                  selectedProductKey
+                    ? `https://endoflife.date/${encodeURIComponent(
+                        selectedProductKey,
+                      )}`
+                    : 'https://endoflife.date/'
+                }
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-white hover:text-slate-700"
               >
                 <ExternalLink size={16} />
-                Ver catálogo EOL
+                {selectedProductKey
+                  ? 'Ver producto en EOL'
+                  : 'Ver endoflife.date'}
               </a>
 
               <div className="flex flex-col-reverse gap-2 sm:flex-row">

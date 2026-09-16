@@ -4,15 +4,13 @@ import {
 } from 'react';
 
 import {
+  Activity,
   ArrowUp,
   Boxes,
   Building2,
   Calculator,
-  ClipboardList,
-  GitBranch,
   KeyRound,
   LayoutDashboard,
-  ListChecks,
   LogOut,
   Menu,
   Network,
@@ -85,37 +83,11 @@ const menuItems = [
 
   {
     label:
-      'Versiones software',
-    section: 'INVENTARIO',
-    path:
-      '/software-versions',
-    icon: GitBranch,
-    roles: [
-      'ADMIN',
-      'EDITOR',
-    ],
-  },
-
-  {
-    label:
-      'Plan actualización',
+      'Ciclo de vida',
     section: 'OPERACIÓN',
     path:
-      '/software-update-plan',
-    icon: ClipboardList,
-    roles: [
-      'ADMIN',
-      'EDITOR',
-    ],
-  },
-
-  {
-    label:
-      'Plan revisión',
-    section: 'OPERACIÓN',
-    path:
-      '/inventory-review-plan',
-    icon: ListChecks,
+      '/lifecycle',
+    icon: Activity,
     roles: [
       'ADMIN',
       'EDITOR',

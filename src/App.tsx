@@ -17,15 +17,13 @@ import AppLayout from './layouts/AppLayout';
 import CompaniesPage from './pages/CompaniesPage';
 import CredentialVaultPage from './pages/CredentialVaultPage';
 import DashboardPage from './pages/DashboardPage';
-import InventoryReviewPlanPage from './pages/InventoryReviewPlanPage';
 import IpManagementPage from './pages/IpManagementPage';
+import LifecyclePage from './pages/LifecyclePage';
 import LoginPage from './pages/LoginPage';
 import PricingPage from './pages/PricingPage';
 import ProfilePage from './pages/ProfilePage';
 import ServerDetailPage from './pages/ServerDetailPage';
 import ServersPage from './pages/ServersPage';
-import SoftwareUpdatePlanPage from './pages/SoftwareUpdatePlanPage';
-import SoftwareVersionsPage from './pages/SoftwareVersionsPage';
 import SystemsPage from './pages/SystemsPage';
 import UsersPage from './pages/UsersPage';
 
@@ -140,7 +138,7 @@ function App() {
             />
 
             <Route
-              path="/software-versions"
+              path="/lifecycle"
               element={
                 <RoleRoute
                   roles={[
@@ -148,36 +146,38 @@ function App() {
                     'EDITOR',
                   ]}
                 >
-                  <SoftwareVersionsPage />
+                  <LifecyclePage />
                 </RoleRoute>
+              }
+            />
+
+            <Route
+              path="/software-versions"
+              element={
+                <Navigate
+                  to="/lifecycle?tab=versions&entity=software"
+                  replace
+                />
               }
             />
 
             <Route
               path="/software-update-plan"
               element={
-                <RoleRoute
-                  roles={[
-                    'ADMIN',
-                    'EDITOR',
-                  ]}
-                >
-                  <SoftwareUpdatePlanPage />
-                </RoleRoute>
+                <Navigate
+                  to="/lifecycle?tab=actions&action=update"
+                  replace
+                />
               }
             />
 
             <Route
               path="/inventory-review-plan"
               element={
-                <RoleRoute
-                  roles={[
-                    'ADMIN',
-                    'EDITOR',
-                  ]}
-                >
-                  <InventoryReviewPlanPage />
-                </RoleRoute>
+                <Navigate
+                  to="/lifecycle?tab=actions&action=review"
+                  replace
+                />
               }
             />
 

@@ -14,6 +14,7 @@ import {
   Plus,
   Power,
   Save,
+  Trash2,
   X,
 } from 'lucide-react';
 
@@ -22,8 +23,10 @@ import {
 } from 'react-router-dom';
 
 import AuditHistoryModal from '../components/AuditHistoryModal';
+import DeleteCatalogConfirmModal from '../components/DeleteCatalogConfirmModal';
 import EndOfLifeMappingsPanel from '../components/EndOfLifeMappingsPanel';
 import PageLoader from '../components/PageLoader';
+import { useToast } from '../components/ToastProvider';
 import OperatingSystemsPage from './OperatingSystemsPage';
 
 import {
@@ -33,6 +36,14 @@ import {
   type SoftwareCatalogItem,
   type SoftwareCategory,
 } from '../services/catalogs.service';
+
+import {
+  deleteSoftwareCatalogItem,
+} from '../services/catalog-maintenance.service';
+
+import {
+  getUser,
+} from '../services/session.service';
 
 import {
   getAuditHistory,
@@ -119,6 +130,15 @@ function categoryLabel(
 }
 
 export default function SystemsPage() {
+  const toast = useToast();
+
+  const currentUser =
+    getUser();
+
+  const canDelete =
+    currentUser?.role ===
+    'ADMIN';
+
   const [
     searchParams,
     setSearchParams,
@@ -160,6 +180,19 @@ export default function SystemsPage() {
     useState(true);
   const [saving, setSaving] =
     useState(false);
+  const [
+    deletingId,
+    setDeletingId,
+  ] = useState<number | null>(
+    null,
+  );
+
+  const [
+    deleteTarget,
+    setDeleteTarget,
+  ] = useState<
+    SoftwareCatalogItem | null
+  >(null);
 
   const [
     historyOpen,
@@ -387,6 +420,70 @@ export default function SystemsPage() {
     }
   }
 
+  function openDelete(
+    item: SoftwareCatalogItem,
+  ) {
+    if (
+      !canDelete ||
+      deletingId !== null
+    ) {
+      return;
+    }
+
+    setDeleteTarget(item);
+  }
+
+  function closeDelete() {
+    if (deletingId !== null) {
+      return;
+    }
+
+    setDeleteTarget(null);
+  }
+
+  async function confirmDelete() {
+    if (
+      !canDelete ||
+      !deleteTarget ||
+      deletingId !== null
+    ) {
+      return;
+    }
+
+    const item = deleteTarget;
+
+    try {
+      setDeletingId(item.id);
+      setError('');
+      setSuccess('');
+
+      await deleteSoftwareCatalogItem(
+        item.id,
+      );
+
+      setDeleteTarget(null);
+
+      toast.success(
+        'Software eliminado',
+        `${item.name} fue eliminado definitivamente del catálogo.`,
+      );
+
+      await loadSystems();
+    } catch (caughtError) {
+      const message =
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'No fue posible eliminar el sistema.';
+
+      toast.error(
+        'No se pudo eliminar el software',
+        message,
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   async function openHistory(
     item: SoftwareCatalogItem,
   ) {
@@ -506,7 +603,7 @@ export default function SystemsPage() {
           }`}
         >
           <Link2 size={17} />
-          Integración EOL
+          Correspondencias EOL
         </button>
       </div>
 
@@ -619,7 +716,7 @@ export default function SystemsPage() {
                             key={
                               item.id
                             }
-                            className="group grid gap-4 px-5 py-4 transition hover:bg-slate-50/70 md:grid-cols-[minmax(220px,1fr)_130px_140px] md:items-center"
+                            className="group grid gap-4 px-5 py-4 transition hover:bg-slate-50/70 md:grid-cols-[minmax(220px,1fr)_130px_180px] md:items-center"
                           >
                             <div className="min-w-0">
                               <div className="truncate font-semibold text-slate-900">
@@ -702,6 +799,27 @@ export default function SystemsPage() {
                                   size={17}
                                 />
                               </button>
+
+                              {canDelete && (
+                                <button
+                                  type="button"
+                                  title="Eliminar"
+                                  aria-label={`Eliminar ${item.name}`}
+                                  disabled={
+                                    deletingId !== null
+                                  }
+                                  onClick={() =>
+                                    openDelete(
+                                      item,
+                                    )
+                                  }
+                                  className="rounded-lg p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-700 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  <Trash2
+                                    size={17}
+                                  />
+                                </button>
+                              )}
                             </div>
                           </div>
                         ),
@@ -856,6 +974,21 @@ export default function SystemsPage() {
           </div>
         </div>
       )}
+
+      <DeleteCatalogConfirmModal
+        open={deleteTarget !== null}
+        title="Eliminar software"
+        itemName={deleteTarget?.name ?? ''}
+        description="Solo se eliminará si no está instalado en servidores ni tiene tarifas asociadas."
+        deleting={
+          deleteTarget !== null &&
+          deletingId === deleteTarget.id
+        }
+        onClose={closeDelete}
+        onConfirm={() => {
+          void confirmDelete();
+        }}
+      />
 
       <AuditHistoryModal
         open={historyOpen}
